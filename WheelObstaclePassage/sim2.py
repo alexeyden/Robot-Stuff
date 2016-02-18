@@ -1,21 +1,32 @@
-#!python3
+#!env python3
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 import scipy.integrate as sciint
+import sys
+
 import model
 
-m = model.model_torque()
+def init():
+	global m, ir, data_x, data_y
+	if len(sys.argv) > 1 and 'torque'.startswith(sys.argv[1]):
+		m = model.model_torque()
+	else:
+		m = model.model_push()
 
-ir = sciint.ode(m.step).set_integrator('vode', atol=0.01)
-ir.set_initial_value(m.init, 0)
+	ir = sciint.ode(m.step).set_integrator('vode', atol=0.01)
+	ir.set_initial_value(m.init, 0)
+	
+	data_x = []
+	data_y = []
 
-plt.xkcd()
+init()
 
 fig = plt.figure()
 ax = fig.add_subplot(111, autoscale_on=False, aspect='equal', xlim=(0, 10), ylim=(0, 5))
 ax.grid()
+fig.suptitle(type(m).__name__)
 
 wheel = plt.Circle((0,0), m.r_k, color='black', lw=2, fill=False)
 ax.add_artist(wheel)
@@ -56,5 +67,5 @@ def animate(i):
 	return (line,wheel,text, f_s, f_x, f_y)
 
 ani = animation.FuncAnimation(fig, animate, interval=25, blit=True)
-
 plt.show()
+
