@@ -12,7 +12,10 @@ import scipy.cluster.vq
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from matplotlib import rc
-rc('font',**{'family':'DejaVu Sans','sans-serif':['Helvetica']})
+font = {'family' : 'DejaVu Sans',
+        'size'   : 22}
+
+rc('font', **font)
 
 class BOW:
 	def __init__(self, data_path, dump_path = None, detector=('surf', {}), cluster=('k-means', {'k_or_guess': 20}), classify=('svm', {})):
@@ -54,18 +57,18 @@ class BOW:
 			for word in words:
 				im_features[i][word] += 1
 		
-		plt.imshow(im_features, cmap='gist_gray', interpolation='nearest')
-		plt.xlabel(u'Номер слова (кластера)')
-		plt.ylabel(u'Изображение')
-		plt.colorbar(label='Частота слова')
-		plt.yticks([0,1,2,3,4,5,6,7,8,9], ['car/1.jpg', 'car/2.jpg', 'car/3.jpg', 'car/4.jpg', 'car/5.jpg', 'building/1.jpg', 'building/2.jpg', 'building/3.jpg', 'building/4.jpg', 'building/5.jpg'])
-		plt.show()
-		sys.exit(0)
-		
 		nbr_occurences = np.sum( (im_features > 0) * 1, axis = 0)
 		idf = np.array(np.log((1.0*len(image_list)+1) / (1.0*nbr_occurences + 1)), 'float32')
 		scaler = StandardScaler().fit(im_features)
 		im_features = scaler.transform(im_features)
+		
+		plt.imshow(im_features, cmap='gist_gray', interpolation='nearest')
+		plt.xlabel(u'Номер слова (кластера)')
+		plt.ylabel(u'Изображение')
+		plt.colorbar()
+		plt.yticks([0,1,2,3,4,5,6,7,8,9], ['car/1.jpg', 'car/2.jpg', 'car/3.jpg', 'car/4.jpg', 'car/5.jpg', 'building/1.jpg', 'building/2.jpg', 'building/3.jpg', 'building/4.jpg', 'building/5.jpg'])
+		plt.show()
+		sys.exit(0)
 		
 		clf = LinearSVC()
 		class_ids = [class_id for class_id,images in enumerate(self.data.values()) for _ in images]
