@@ -1,0 +1,3 @@
+[submodule "Ultrasonic"]
+	path = Ultrasonic
+	url = git@github.com:alexeyden/Diploma-Stuff.git
