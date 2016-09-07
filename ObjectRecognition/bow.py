@@ -12,6 +12,7 @@ import scipy.cluster.vq
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from matplotlib import rc
+
 font = {'family' : 'DejaVu Sans',
         'size'   : 22}
 
@@ -102,7 +103,6 @@ class BOW:
 		
 		# нормализация
 		features = self.result['scaler'].transform(features)
-		print(sum(features[0] * self.result['class_result'].coef_[0]), self.result['class_result'].intercept_)
 		
 		# определение класса обученным классификатором
 		prediction = [self.result['tags'][i] for i in self.result['class_result'].predict(features)]
@@ -120,9 +120,20 @@ class BOW:
 		else:
 			return None
 
-# запуск для тренировки или классификации
-if sys.argv[1] == 'train':		
+# запуск для обучения или классификации
+if sys.argv[1] == 'train':
 	BOW(data_path='data').train().save(sys.argv[2])
 elif sys.argv[1] == 'class':
-	pred = BOW(data_path='data', dump_path = sys.argv[2]).classify(sys.argv[3])
-	print(pred)
+	images = []
+	
+	if os.path.isfile(sys.argv[3]):
+		images += [sys.argv[3]]
+	else:
+		images = [os.path.join(sys.argv[3], img_file) for img_file in os.listdir(sys.argv[3]) if not img_file.startswith('.')]
+	
+	print('<table border=1>')
+	for image in sorted(images):
+		pred = BOW(data_path='data', dump_path = sys.argv[2]).classify(image)
+		print('<tr><td><img width=200 src="' + image + '"/></td><td>', image, '</td><td>', pred[0], '</td></tr>')
+	print('</table>')
+

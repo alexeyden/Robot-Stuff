@@ -94,3 +94,4 @@ draw_params = dict(matchColor = (0,255,0),
 img3 = cv2.drawMatchesKnn(img1,kp1,img2,kp2,matches,None,**draw_params)
 
 plt.imshow(img3,),plt.show()
+
