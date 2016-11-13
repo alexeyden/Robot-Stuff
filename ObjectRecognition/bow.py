@@ -27,13 +27,14 @@ class BOW:
 		self.cluster_k = cluster[1]['k_or_guess'] # размер словаря
 
 		# чтение путей изображений
-		names = os.listdir(self.path)
-		self.data = {
-				name: [
-					self.path + '/' + name + '/' + image 
-					for image in os.listdir(self.path + '/' + name)
-				] for name in names
-		}
+		if data_path is not None:
+			names = os.listdir(self.path)
+			self.data = {
+					name: [
+						self.path + '/' + name + '/' + image 
+						for image in os.listdir(self.path + '/' + name)
+					] for name in names
+			}
 		
 		# чтение обученной базы данных
 		if dump_path is not None:
@@ -133,7 +134,7 @@ elif sys.argv[1] == 'class':
 	
 	print('<table border=1>')
 	for image in sorted(images):
-		pred = BOW(data_path='data', dump_path = sys.argv[2]).classify(image)
+		pred = BOW(data_path=None, dump_path = sys.argv[2]).classify(image)
 		print('<tr><td><img width=200 src="' + image + '"/></td><td>', image, '</td><td>', pred[0], '</td></tr>')
 	print('</table>')
 
