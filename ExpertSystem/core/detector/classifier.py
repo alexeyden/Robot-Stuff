@@ -1,6 +1,4 @@
-import cv2
 import cv2.xfeatures2d
-import numpy as np
 
 from .trainer import *
 

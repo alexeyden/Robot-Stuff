@@ -46,10 +46,10 @@ def process_test(train_data, input_, profile=False):
     if profile:
         profile_end(prof)
 
-    print('Class = {}/{}'.format(class_[0], class_[1]))
+    print('Class = {}'.format(class_))
 
     for class_, dist in dists.items():
-        print('{}/{} : {}'.format(*class_, dist))
+        print('{} : {}'.format(class_, dist))
 
 
 def parse_args():

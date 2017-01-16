@@ -7,4 +7,3 @@ class ScanningWindowDetector:
     def detect(self, image):
         pass
 
-    def 

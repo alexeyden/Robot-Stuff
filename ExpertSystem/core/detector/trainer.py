@@ -3,6 +3,7 @@ import cv2
 import cv2.xfeatures2d
 import numpy as np
 import glob
+import re
 
 from sklearn.svm import LinearSVC
 import scipy.cluster.vq
@@ -10,8 +11,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class TrainingImage:
-    def __init__(self, superclass, class_, path, index, descriptors):
-        self.superclass = superclass
+    def __init__(self, class_, path, index, descriptors):
         self.class_ = class_
         self.path = path
         self.index = index
@@ -28,9 +28,9 @@ class TrainingImage:
             return None
 
         name = os.path.basename(path)
-        superclass, class_, index = name.replace('.png', '').split('_')
+        class_, index = re.match('(.*)_([0-9])+', name.replace('.png', '')).groups(0)
 
-        return TrainingImage(superclass, class_, path, int(index), descriptors)
+        return TrainingImage(class_, path, int(index), descriptors)
 
 
 class TrainingResult:
@@ -53,7 +53,7 @@ class BagOfWordsTrainer:
         self.options = options
         self.surf_detector = cv2.xfeatures2d.SURF_create(**self.options.surf)
 
-        image_paths = glob.glob(os.path.join(data_path, '*_*_*.png'))
+        image_paths = glob.glob(os.path.join(data_path, '*_*.png'))
 
         self.training_images = []
 
@@ -66,10 +66,10 @@ class BagOfWordsTrainer:
                 print('Warning: no descriptors found for {0}'.format(image_path))
 
         classes = {
-            (image.superclass, image.class_)
+            image.class_
             for image in self.training_images
         }
-        self.classes = { class_: id for id, class_ in enumerate(classes) }
+        self.classes = {class_: id_ for id_, class_ in enumerate(classes)}
 
     def train(self):
         descriptors = self._flatten_descriptors()
@@ -87,7 +87,7 @@ class BagOfWordsTrainer:
         histogram = scaler.transform(histogram)
 
         svm = LinearSVC()
-        class_ids = [self.classes[(image.superclass, image.class_)] for image in self.training_images]
+        class_ids = [self.classes[image.class_] for image in self.training_images]
         svm.fit(histogram, np.array(class_ids))
 
         return TrainingResult(
