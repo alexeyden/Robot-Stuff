@@ -1,0 +1,93 @@
+@startuml
+
+hide empty methods
+hide circle
+
+skinparam classFontStyle bold
+
+!define PK <&key><b>
+!define FK <&link-intact><i>
+!define PP <&caret-right>
+!define SK <&loop><i>
+
+class "Тип датчика" as sensor_type {
+    PK ID         \t\t\t Int32
+    PP Наименование   \t String
+    PP Свойства     \t\t Dict
+}
+
+class "Датчик" as sensor {
+    PK ID        \t\t Int128
+    FK Тип       \t\t Int32
+    FK Робот     \t\t String
+    PP Параметры   \t Dict
+}
+
+class "Измерение" as measure {
+    PK ID        \t\t Int128
+    FK Датчик      \t Int128
+    FK Серия       \t Int128
+    PP Положение   \t Dict
+    PP Результаты  \t Dict
+}
+
+class "Серия измерений" as series {
+    PK ID       \t\t Int128
+    PP OSM Объект \t Int64
+    PP Положение  \t Vector
+    PP Ориентация \t Vector
+}
+
+class "Робот" as robot {
+    PK ID       \t String
+    PP Занят    \t Boolean
+}
+
+class "__СТЗ__ \n Наблюдение" as cvs_observ {
+    PK ID        \t\t Int128
+    FK Серия     \t\t Int128
+    FK Датчик    \t\t Int128
+    PP Изображение \t Blob
+    PP Положение   \t Dict
+    PP Результат   \t Dict
+}
+
+class "__СТЗ__ \n Видимый объект" as cvs_obj {
+    PK ID          \t\t\t Int128
+    FK Решение ЭС      \t Int32
+    FK Наблюдение    \t\t Int128
+    PP Идентификатор   \t Dict
+    PP Огр. полигон  \t\t Dict
+}
+
+class "__СТЗ__ \n Классификатор ЭС" as cvs_classifier {
+    PK ID               \t\t\t\t Int128
+    FK Робот-источник     \t\t\t Dict
+    PP Словарь            \t\t\t Dict
+    PP Параметры SVM        \t\t Dict
+    PP Классы             \t\t\t Dict
+    PP Параметры нормализации \t Dict
+}
+
+class "__СТЗ__ \n Правило ЭС" as cvs_es {
+    PK ID              \t\t Int128
+    PP Наименование      \t String?
+    PP Предикат          \t Dict
+    PP Свойства          \t Dict
+    ..
+    SK Предок            \t Int128
+    SK Потомки           \t Int128
+}
+
+measure::Датчик }-- sensor::ID
+sensor::Тип }-- sensor_type::ID
+sensor::Робот }-- robot::ID
+measure::Серия }-- series::ID
+
+cvs_observ::Серия }-- series::ID
+cvs_observ::Датчик }-- sensor::ID
+cvs_obj::Решение }-- cvs_es::ID
+cvs_obj::Наблюдение }-- cvs_observ::ID
+cvs_classifier::Робот }-- robot::ID
+
+@enduml

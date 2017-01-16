@@ -1,0 +1,84 @@
+@startuml
+
+package storage {
+package entities {
+
+class "SensorType" as sensor_type {
+    + id : Int
+    + name : String
+    + properties : Dict<String, Any>
+}
+
+class "Sensor" as sensor {
+    + id : Int128
+    + type : SensorType
+    + robot : Robot
+    + properties : Dict<String, Any>
+}
+
+class "Measure" as measure {
+    + id : Int128
+    + sensor : Sensor
+    + series : ObservationSeries
+    + state : Vector<Real>
+    + results : Vector<Real>
+}
+
+class "ObservationSeries" as series {
+    + id : Int128
+    + osm_id : Int64
+    + long_lat : Vector<Real>
+    + direction : Vector<Real>
+}
+
+class "Robot" as robot {
+    + id : Int128
+    + busy : Boolean
+}
+
+class "Observation" as cvs_observ {
+    + id : Int128
+    + series_id : Int128
+    + series : ObservationSeries
+    + sensor : Sensor
+    + image : Bytes
+    + state : Vector<Real>
+}
+
+cvs_observ *-- series
+robot --* sensor
+sensor --* measure
+robot --* cvs_classifier
+sensor_type --* sensor
+DecisionTreeNode --* DecisionTreeNode
+cvs_observ --|> measure
+
+class "ObservationObject" as cvs_obj {
+    + id : Int128
+    + observ_id : Int128
+    + es_class : Int32
+    + es_id : Dict<String, Any>
+    + bounds : Vector<Real>
+}
+
+class "ClassifierDataRev" as cvs_classifier {
+    + id : Int128
+    + robot : Robot
+    + vocabulary : Vector<Vector<Real>>
+    + svm_props : Dict<String, Vector<Real>>
+    + classes : Vector<String>
+    + scaler_props : Dict<String, Vector<Real>>
+}
+
+class DecisionTreeNode {
+    + id : Int128
+    + name : String
+    + predicate : String
+    + properties : Dict<String, Any>
+    + parent : DecisionTreeNode
+    + children : List<DecisionTreeNode>
+    + is_partial : Boolean
+}
+}
+}
+@enduml

@@ -1,0 +1,102 @@
+@startuml
+
+package comm {
+    class ObservObjectPart {
+        + osm_id : Int64
+        + points : Vector
+        + mode : ObservMode
+    }
+
+    class ObservMasterReq {
+        + object : ObservObjectPart
+        + sensors : List<Int128>
+        + max_robots : Int
+    }
+
+    enum ObservMode {
+        POINTS
+        SEQUENTIAL
+        CONTINUOUS
+    }
+
+    class ObservSlaveReq {
+        + object : ObservObjectPart
+        + seq_points : List<Vector>
+    }
+
+    abstract class PlanError {
+        + request : ObservMasterReq
+    }
+
+    class IncompSensorsError {
+        + sensors : List<Int128>
+    }
+
+    class NoPathError {
+        + source : Vector
+    }
+
+    class ObservPlanResp {
+        + req_object : ObservObjectPart
+        + error : PlanError
+        + members : Dict<String, ObservSlaveReq>
+    }
+
+    class VCSControl {
+        + build_plan_master(req: ObservMasterReq) : ObservPlanResp
+        + exec_slave_plan(req : ObservSlaveReq)
+        + exec_slave_plan_done(source : String)
+        + exec_slave_plan_failed(source : String)
+        + exec_slave_plan_point_reached(state : Vector)
+        - build_sensor_set(req : ObservSlaveReq) : List<Robot>, List<SensorType>
+        - get_object_type(osm_id : Int64)
+        - is_object_reachable(obj : ObservObjectPart)
+        - current_plan : ObservPlanResp
+        - plan_status : Dict<String, Boolean>
+        - master_mode : Boolean
+        + storage : Storage
+        + camera : Camera
+        + recognition : Recognition
+    }
+
+    class CommServer {
+        + start()
+        + stop()
+        --
+        + send_master_plan(p : ObservPlanResp)
+        + ping(robot : String) : Boolean
+        - on_exec_slave_plan(source : String, req : ObservSlaveReq)
+        - on_exec_slave_plan_done(source : String)
+        - on_exec_slave_plan_failed(source : String)
+        --
+        - handle(json : String) : String
+        + vcs_control : VCSControl
+    }
+}
+
+package main {
+    class HttpApiServer {
+        ...
+        --
+        + on_point_reached(state : Vector)
+        + observe_object(req : ObservMasterReq) : ObservPlanResp
+        + this_robot : String
+        - comm_server : CommServer
+    }
+}
+
+CommServer --* HttpApiServer
+VCSControl --* CommServer
+ObservPlanResp --* VCSControl
+ObservMasterReq <.. VCSControl
+ObservSlaveReq <.. ObservPlanResp
+
+
+ObservObjectPart --* ObservPlanResp
+ObservMode --* ObservObjectPart
+PlanError --* ObservPlanResp
+
+IncompSensorsError --|> PlanError
+NoPathError --|> PlanError
+
+@enduml

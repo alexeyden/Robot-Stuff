@@ -1,0 +1,38 @@
+@startuml
+skinparam monochrome true
+
+|СУСТЗ|
+start
+:build_master_plan(req);
+:result = ObservPlanResp();
+:result.req_object = req.object;
+:robots, sensor_types = build_sensor_set(req);
+if (sensor_types != req.sensors) then (да)
+:result.error = IncompSensorsError(req.sensors - sensor_types);
+:return result;
+stop
+else (нет)
+endif
+if (is_object_reachable(robots, req.object)?) then (нет)
+:result.error = NoPathError();
+:return result;
+stop
+else (да)
+endif
+:slave_req = ObservSlaveReq();
+:slave_req.object = req.object;
+if (req.object.mode = SEQUENTIAL?) then (да)
+:seq_points = build_seq_points(req.object);
+elseif (req.object.mode == POINTS?) then (да)
+:seq_points = distrib_points(req.object, robots);
+else
+:seq_points = None;
+endif
+while (for robot in robots)
+:slave.req.seq_points = seq_points[robot];
+:result.members[robot] = slave_req;
+endwhile
+:return result;
+stop
+
+@enduml

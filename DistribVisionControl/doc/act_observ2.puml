@@ -1,0 +1,19 @@
+@startuml
+skinparam monochrome true
+
+|СУСТЗ (HttpApiServer)|
+start
+:observe_object(req);
+:plan = comm_server.vcs_control.build_plan_master(req);
+:comm_server.send_plan_master(plan);
+
+if (this_robot in plan.members) then (да)
+ :comm_server.cvs_control.exec_slave_plan(plan.members[this_robot]);
+else (нет)
+ stop
+endif
+
+:return plan;
+
+stop
+@enduml

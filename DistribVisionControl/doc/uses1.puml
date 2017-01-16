@@ -1,0 +1,54 @@
+@startuml
+skinparam monochrome true
+skinparam usecaseFontSize 16
+skinparam actorFontSize 16
+
+:Пользователь: as user <<Внешняя система>>
+:Экспертная система: as es <<СТЗ>>
+:СУСТЗ: as cont <<СТЗ>>
+:СУСТЗ #2: as cont2 <<Удаленная СТЗ>>
+:СУБД: as db <<СТЗ>>
+:Подвес камеры: as cam <<СТЗ>>
+:СПМиУД: as plan <<СТЗ>>
+:Датчики: as sens <<СТЗ>>
+
+(Исследование объекта) as (observe)
+(Движение к объекту) as (move)
+(Планирование исследования) as (prepare)
+(Исполнение плана исследования) as (exec)
+(Съемка объекта) as (pic)
+(Распознавание объекта) as (recog)
+(Сохранение результатов) as (save)
+(Репликация результатов) as (repl)
+(Выполнение измерений) as (measure)
+
+user -- observe : Запрос
+observe -- cont
+
+cont -- exec : Запрос
+exec -- cont2 : Исполнение
+
+cont -- move : Запрос на \n перемещение
+move -- plan : Управление\nдвижением
+
+cont -- prepare
+
+cont -- pic : Запрос
+pic -- cam
+
+cont -- recog : Запрос
+recog -- es
+
+cont -- save : Запрос
+save -- db
+
+cont -- measure
+measure -- sens
+
+db -- repl
+
+db -[hidden]- pic
+exec -[hidden]- prepare
+user -[hidden]- prepare
+pic -[hidden]- recog
+@enduml

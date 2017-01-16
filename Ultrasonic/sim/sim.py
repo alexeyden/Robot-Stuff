@@ -28,7 +28,7 @@ class SimMainWindow(QWidget):
 
         builder.buildVehicle(size=(0.5, 1.0), position=[1.0, 0.0], rotation=0.0)
 
-        image = cv2.imread('sim/data/world.png')
+        image = cv2.imread('sim/data/mockup.png')
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         builder.buildObstacleMap(image)
 

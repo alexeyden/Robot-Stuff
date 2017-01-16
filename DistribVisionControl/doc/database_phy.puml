@@ -1,0 +1,84 @@
+@startuml
+
+hide empty methods
+hide circle
+
+skinparam classFontStyle bold
+
+!define PK <&key><b>
+!define FK <&link-intact><i>
+!define PP <&caret-right>
+!define SK <&loop><i>
+
+class "sensor_type" as sensor_type {
+    PK id         \t\t\t Int32
+    PP name        \t\t String
+    PP properties     \t\t Dict
+}
+
+class "sensor" as sensor {
+    PK id        \t\t GUID
+    FK type       \t\t Int32
+    FK robot     \t\t String
+    PP parameters   \t Dict
+}
+
+class "observ" as measure {
+    PK id        \t\t GUID
+    FK sensor      \t Int128
+    FK series       \t Int128
+    PP state       \t\t Dict
+    PP results   \t  \t Dict
+    ..
+    PP image_file   \t File
+}
+
+class "observ_series" as series {
+    PK id       \t\t GUID
+    PP osm_id \t Int64
+    PP long_lat  \t Vector
+    PP orientation \t Vector
+}
+
+class "robot" as robot {
+    PK id       \t\t String
+    PP inactive    \t Boolean
+}
+
+class "visible_object" as cvs_obj {
+    PK id          \t\t\t GUID
+    FK class_decision      \t Int32
+    FK observation    \t\t Int128
+    PP inclass_id   \t Dict
+    PP bbox  \t\t Dict
+}
+
+class "classifier_data" as cvs_classifier {
+    PK id               \t\t\t\t GUID
+    FK source \t\t\t Dict
+    PP vocabulary            \t\t\t Dict
+    PP svm_params        \t\t Dict
+    PP part_classes             \t\t\t Dict
+    PP scaler_params \t Dict
+}
+
+class "es_node" as cvs_es {
+    PK id              \t\t GUID
+    PP label      \t String?
+    PP expr             \t Dict
+    PP props          \t Dict
+    ..
+    SK parent            \t Int128
+    SK children           \t Int128
+}
+
+measure::sensor }-- sensor::id
+sensor::type }-- sensor_type::id
+sensor::robot }-- robot::id
+measure::series }-- series::id
+
+cvs_obj::class_decision }-- cvs_es::id
+cvs_obj::observation }-- measure::id
+cvs_classifier::source }-- robot::id
+
+@enduml

@@ -1,0 +1,89 @@
+@startuml
+
+left to right direction
+
+package storage {
+ class Storage {
+    + server : Server
+    + connect(port)
+    + sync()
+    + disconnect()
+    + transaction()
+    + commit()
+    + decision_nodes_accessor : DecisionNodeAccessor
+    + classifier_data : ClassifierDataRevAccessor
+    + sensors : SensorAccessor
+    + sensor_types : SensorTypeAccessor
+    + observ_series : ObservationSeriesAccessor
+    + observations : ObservationAccessor
+    + observed_objects : ObservationObjectAccessor
+ }
+
+ package accessors {
+     abstract class AccessorBase<T, IdT> {
+        + get_all() : List<T>
+        + get_by_id(id : IdT)
+        + save(ent : T) = 0
+        + delete(id : IdT) = 0
+        + delete(ent : T) = 0
+        + get_conflicts() : List<T> = 0
+        - storage : Storage
+     }
+
+     class ObservationAccessor<Observation, Int128> {
+        + get_by_series_id(series_id : Int128)
+        + get_by_sensor_id(sensor_id : Int128)
+        + fetch_image_by_id(observ_id : Int128)
+     }
+
+     class ObservationSeriesAccessor<ObservationSeries, Int128> {
+        + get_by_osm(osm_id : Int)
+     }
+
+     class ObservationObjectAccessor<ObservationObject, Int128> {
+        + get_by_observation(obs_id : Int128)
+     }
+
+     class SensorAccessor<Sensor, Int128> {
+        + get_by_robot_id(robot_id : Int128)
+        + get_by_types(types : List<Int128>)
+     }
+
+     class SensorTypeAccessor<SensorType, Int128> {
+        + get_by_robot(robot : Int)
+     }
+
+     class DecisionNodeAccessor<DecisionTreeNode, Int128> {
+        + get_tree() : DecisionTreeNode
+        + get_subtree(nid : Int128) : DecisionTreeNode
+        + get_by_subclass(subclass : String) : DecisionTreeNode
+     }
+
+     class ClassifierDataRevAccessor<ClassifierData, Int> {
+        + get_by_source(robot_id : Int128)
+     }
+
+     class RobotAccessor<Robot, Int> {
+        + get_by_sensor_types(types : List<Int128>)
+     }
+
+     ClassifierDataRevAccessor --|> AccessorBase
+     DecisionNodeAccessor --|> AccessorBase
+     SensorTypeAccessor --|> AccessorBase
+     SensorAccessor --|> AccessorBase
+     ObservationObjectAccessor --|> AccessorBase
+     ObservationSeriesAccessor --|> AccessorBase
+     ObservationAccessor --|> AccessorBase
+     RobotAccessor --|> AccessorBase
+ }
+
+ ClassifierDataRevAccessor --* Storage
+ DecisionNodeAccessor --* Storage
+ SensorTypeAccessor --* Storage
+ SensorAccessor --* Storage
+ ObservationObjectAccessor --* Storage
+ ObservationSeriesAccessor --* Storage
+ ObservationAccessor --* Storage
+}
+
+@enduml

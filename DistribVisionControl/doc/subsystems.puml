@@ -1,0 +1,33 @@
+@startuml
+
+skinparam monochrome true
+
+rectangle "ГИС" as gis {
+}
+
+rectangle "СТЗ" as cvs {
+}
+
+rectangle "СПМиУД" as plan {
+}
+
+note right of gis {
+ - Агрегация информации от СНиС
+ - База данных объектов
+}
+
+note right of cvs {
+ - Эспертная система классификации и
+   идентификации объектов
+ - Управление камерами
+}
+
+note right of plan {
+ - Планирование пути
+ - Управление движением по траектории
+}
+
+gis <--> plan
+cvs <--> gis
+
+@enduml

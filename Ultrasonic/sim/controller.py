@@ -54,9 +54,9 @@ class SimController:
         '''
         self.gis.sendHole([[[-256, -256]], [[-256, 256]], [[256, 256]], [[256, -256]]])
 
-        for c in  self.world.contours:
+        for c in  self.mockup.contours:
             if len(c) > 10:
                 self.gis.sendObject(c)
 
-        self.gis.sendPosition(self.world.vehicle.position)
+        self.gis.sendPosition(self.mockup.vehicle.position)
         '''

@@ -1,0 +1,56 @@
+@startuml
+
+class "План исследования" as plan {
+}
+
+class "Исследуемый объект" as obj {
+}
+
+class "Запрос на исследование" as req {
+}
+
+class "Тип датчика" as sensor_type {
+}
+
+class "Датчик" as sensor {
+}
+
+class "Измерение" as measure {
+}
+
+class "Серия измерений" as series {
+}
+
+class "Робот" as robot {
+}
+
+class "Наблюдение" as cvs_observ {
+}
+
+class "Видимый объект" as cvs_obj {
+}
+
+class "Классификатор ЭС" as cvs_classifier {
+}
+
+class "Правило ЭС" as cvs_es {
+}
+
+cvs_es *-- cvs_es
+cvs_observ --|> measure
+sensor "0..*" *-- "1" sensor_type
+cvs_observ "1" *-- "0..*" cvs_obj
+cvs_observ "0..*" o-- "1" cvs_es
+measure "0..*" o-- "1" sensor
+series "1" *-- "0..*" measure
+
+cvs_classifier "0..*" o-- "1" robot
+sensor "0..*" o-- "1" robot
+
+obj "1..*" --* "1" plan
+req "1" *-- "1..*" obj
+robot "1..*" --* "1" plan
+@enduml
+
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+skinparam monochrome true
+
+start
+:exec_slave_plan_point_reached(state : Vector);
+:images = [];
+:point, dir, span = state;
+:images = camera.scan_span(span, ceil(span / camera.fov));
+note right
+Произвести фотографирование
+в промежутке span с разбиением на
+ceil(span / camera.fov) шагов
+end note
+:storage.transaction();
+:series = ObservationSeries()
+series.osm_id = current_plan.object.osm_id
+series.long_lat = point
+series.direction = dir;
+:sid = storage.series.save(series);
+while (for angle, image in images)
+:observ = Observation()
+observ.image = image
+observ.series_id = sid
+observ.state = angle;
+note right
+Для всех отснятых озображений
+end note
+:classes, bounds = recognition.classify(image);
+:oid = storage.obserations.save(observ);
+while (for class, bound in classes, bounds)
+:id = recognition.identify(image, class);
+:obj = ObservationObject()
+obj.es_class = class.id
+obj.es_id = id
+obj.bounds = bound
+obj.observ_id = oid;
+note right
+Для каждого найденного объекта
+end note
+:storage.observ_objects.save(obj);
+:storage.save(obj);
+endwhile
+endwhile
+:storage.commit();
+stop
+
+@enduml
