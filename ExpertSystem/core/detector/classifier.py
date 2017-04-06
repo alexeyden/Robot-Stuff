@@ -4,10 +4,9 @@ from .trainer import *
 
 
 class BagOfWordsClassifier:
-    def __init__(self, training: TrainingResult):
+    def __init__(self, training: ClassTrainingResult, options: TrainingOptions):
         self.training = training
-        self.surf_detector = cv2.xfeatures2d.SURF_create(**training.options.surf)
-        self.classes = {id_: class_ for class_, id_ in self.training.classes.items()}
+        self.surf_detector = cv2.xfeatures2d.SURF_create(**options.surf)
 
     def predict(self, image_or_path):
         if type(image_or_path) is str:
@@ -19,8 +18,12 @@ class BagOfWordsClassifier:
 
     def _predict_image(self, image):
         key_points = self.surf_detector.detect(image)
+
+        if not key_points:
+            return None
+
         key_points, descriptors = self.surf_detector.compute(image, key_points)
-        features = np.zeros((1, self.training.options.kmeans['k_or_guess']), "float32")
+        features = np.zeros((1, len(self.training.vocabulary)), np.float32)
 
         words, distance = scipy.cluster.vq.vq(descriptors, self.training.vocabulary)
 
@@ -29,11 +32,9 @@ class BagOfWordsClassifier:
 
         features = self.training.scaler.transform(features)
 
-        predicted_class_id = self.training.svc.predict(features)[0]
-        distances = { self.classes[id_]: dist for id_, dist in enumerate(self.training.svc.decision_function(features)[0])}
-        prediction = (self.classes[predicted_class_id], distances)
+        prob = self.training.svc.predict_proba(features)[0]
 
-        return prediction
+        return prob[1]
 
     def _predict_path(self, path):
         image = cv2.imread(path)

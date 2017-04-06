@@ -1,0 +1,48 @@
+@startuml
+
+package C++ <<Rectangle>> {
+    class Detection {
+        + x : int
+        + y : int
+        + z : int
+        + bounds : Rectangle
+        + score : double
+    }
+
+    class FFLDDetector {
+        + lastDetections : Detection[]
+        - mixture : Mixture
+
+        + run(image: Matrix) : Detection[]
+        + {static} fromJson(json : string) : FFLDDetector
+    }
+
+    HOGPyramid <.. FFLDDetector
+    Patchwork <.. FFLDDetector
+    Mixture <.. FFLDDetector
+    Detection --* FFLDDetector
+}
+
+package Python <<Rectangle>> {
+    class DetectionPy {
+        + location : tuple
+        + bounds : tuple
+        + score : float
+    }
+
+    class FFLDDetectorPy {
+        - impl : FFLDetector
+        + last_detections : list[DetectionPy]
+        + interval : int
+        + padding : int
+        + overlap : float
+        + threshold : float
+        + run(image : ndarray)
+        + {static} from_json(json : str)
+    }
+
+    FFLDDetectorPy *-- FFLDDetector
+    FFLDDetectorPy *-- DetectionPy
+}
+
+@enduml

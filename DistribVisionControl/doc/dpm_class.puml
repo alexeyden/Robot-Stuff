@@ -1,0 +1,48 @@
+@startuml
+
+
+class Part {
++ filter : Matrix
++ offset : Vector
++ deformation : Matrix
+}
+
+class Model {
++ empty : bool
++ parts : Part[]
++ bias : float
++ rootSize : (int, int)
++ partSize : (int, int)
++ norm : double
+
++ initializeParts(nbParts: int, partSize: (int, int))
++ initializeSample(pytamid : HOGPyramid, x : int, y : int, Matrix[][])
++ convolve(pyramid: HOGPyramid) : (Matrix[], Matrix[][])
++ dot(sample : Model) : double
++ add(model: Model) : Model
++ sub(model: Model) : Model
++ mul(model: Model) : Model
++ flip() : Model
+}
+
+class Mixture {
++ empty : bool
++ minSize : (int, int)
++ maxSize : (int, int)
++ models : Model[]
+
++ train(scenes: Scene[], name: string, params: dict)
++ initializeParts(nbParts: int, partSize: (int, int))
++ convolve(pyramid: HOGPyramid, scores: Matrix[], argmax: Matrix) : Matrix[][][]
+}
+
+Model --* Mixture
+Part --* Model
+
+Mixture ..> LBFGS
+Mixture ..> HOGPyramid
+Mixture ..> Patchwork
+Mixture ..> Scene
+Model ..> HOGPyramid
+
+@enduml

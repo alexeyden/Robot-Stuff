@@ -1,0 +1,71 @@
+@startuml
+
+left to right direction
+
+class HOGPyramid {
++ empty : bool
++ padx : int
++ pady : int
++ interval : int
++ levels : Matrix[]
++ convolve(filter : Matrix) : Matrix[]
+}
+
+class Patchwork {
++ empty : bool
++ padx : int
++ pady : int
++ interval : int
++ convolve(filter : Matrix) : Matrix[]
+}
+
+enum Pose {
+    FRONT, LEFT, RIGHT, REAR, UNSPEC
+}
+
+class Rectangle {
++ x : int
++ y : int
++ width : int
++ height : int
+}
+
+class LBFGS {
++ eps : double
++ maxIter : 400
++ dim : int
++ objective : function(x: double, y: double) -> double
++ run (x: double[]) : double[]
+}
+
+class Object {
++ empty : bool
++ name : string
++ pose : Pose
++ truncated : bool
++ difficult : bool
++ bbox : Rectangle
+}
+
+class Scene {
++ empty : bool
++ width : int
++ height : int
++ depth : int
++ filename : string
++ objects : Object[]
+}
+
+Object --* Scene
+Pose --* Object
+Rectangle --* Object
+
+Mixture ..> LBFGS
+Mixture ..> HOGPyramid
+Mixture ..> Patchwork
+Mixture ..> Scene
+Model ..> HOGPyramid
+
+LBFGS -[hidden]- Scene
+
+@enduml
