@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "view_debug.h"
+#include "sensors/crbuffer.h"
 
 view_window::view_window(size_t width, size_t height)
 {

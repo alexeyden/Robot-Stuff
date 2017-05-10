@@ -19,9 +19,9 @@ vrep_client::~vrep_client()
 
 bool vrep_client::connect(simxInt port)
 {
-    _conn_id = simxStart("127.0.0.1", port, 0, 1, 1000, 5);
+    int id = simxStart("127.0.0.1", port, 0, 1, 1000, 5);
 
-    if(is_connected()) {
+    if(id > 0) {
         simxGetObjectHandle(_conn_id, "CameraL", &_lcam_id, simx_opmode_blocking);
         simxGetObjectHandle(_conn_id, "CameraR", &_rcam_id, simx_opmode_blocking);
 
@@ -32,7 +32,9 @@ bool vrep_client::connect(simxInt port)
         simxGetObjectHandle(_conn_id, "Sonic3", &_usonic_id[2], simx_opmode_blocking);
     }
 
-    return is_connected();
+    _conn_id = id;
+
+    return id > 0;
 }
 
 void vrep_client::disconnect()
