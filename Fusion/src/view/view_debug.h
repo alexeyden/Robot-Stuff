@@ -36,10 +36,6 @@ private:
     std::shared_ptr<texture<>> _cam_right_tex;
 
     float _update_time;
-
-    float _ticks_time;
-    float _ticks_per_sec;
-    uint32_t _ticks_count;
 };
 
 #endif // VIEW_DEBUG_H

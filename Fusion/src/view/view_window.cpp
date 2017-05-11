@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "view_debug.h"
+#include "main_view.h"
+
 #include "sensors/crbuffer.h"
 
 view_window::view_window(size_t width, size_t height)
@@ -16,6 +18,8 @@ view_window::view_window(size_t width, size_t height)
     _window = glfwCreateWindow(width, height, "View", nullptr, nullptr);
     glfwSetWindowUserPointer(_window, this);
     glfwSetFramebufferSizeCallback(_window, &on_resize);
+    glfwSetCursorPosCallback(_window, &on_mouse);
+    glfwSetKeyCallback(_window, &on_key);
 
     glfwMakeContextCurrent(_window);
 
@@ -38,16 +42,24 @@ view_window::view_window(size_t width, size_t height)
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-//    glEnable(GL_DEPTH_TEST);
-//    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     _width = width;
     _height = height;
 
     _views.push_back(std::shared_ptr<view>(new view_debug(this)));
+    _views.push_back(std::shared_ptr<view>(new main_view(this)));
+    _cur_view = 0;
+
+    _ticks_count = 0;
+    _ticks_per_sec = 0.0f;
+    _ticks_time = 0.0f;
 
     std::cerr << "Window: starting fetcher thread.." << std::endl;
     _fetcher.start();
@@ -73,9 +85,16 @@ void view_window::run_loop()
         double dt = glfwGetTime() - t0;
         t0 = glfwGetTime();
 
-        for(auto& v : _views) {
-            v->update(dt);
-            v->draw();
+        _views[_cur_view]->update(dt);
+        _views[_cur_view]->draw();
+
+        _ticks_time += dt;
+        _ticks_count += 1;
+
+        if(_ticks_count > 10) {
+            _ticks_per_sec = _ticks_count / _ticks_time;
+            _ticks_time = 0.0f;
+            _ticks_count = 0;
         }
 
         glfwPollEvents();
@@ -94,4 +113,23 @@ void view_window::on_resize(GLFWwindow *win, int width, int height)
 
     self->_width = width;
     self->_height = height;
+}
+
+void view_window::on_mouse(GLFWwindow *win, double x, double y)
+{
+    view_window* self = (view_window*) glfwGetWindowUserPointer(win);
+    self->_views[self->_cur_view]->on_mouse(x, y);
+}
+
+void view_window::on_key(GLFWwindow *win, int key, int code, int action, int mods)
+{
+    (void) mods;
+    (void) code;
+    view_window* self = (view_window*) glfwGetWindowUserPointer(win);
+    if(key == GLFW_KEY_1 && action == GLFW_PRESS)
+        self->_cur_view = 0;
+    if(key == GLFW_KEY_2 && action == GLFW_PRESS)
+        self->_cur_view = 1;
+
+    self->_views[self->_cur_view]->on_key(key, action == GLFW_RELEASE);
 }

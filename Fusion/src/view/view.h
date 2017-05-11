@@ -15,6 +15,14 @@ public:
         (void) w;
         (void) h;
     }
+    virtual void on_mouse(float x, float y) {
+        (void) x;
+        (void) y;
+    }
+    virtual void on_key(int key, bool released) {
+        (void) key;
+        (void) released;
+    }
 
 protected:
     view_window* _window;

@@ -11,7 +11,7 @@ vbuffer::vbuffer(const float *data, size_t count, GLenum type) :
     glGenBuffers(1, &_id);
     glBindBuffer(GL_ARRAY_BUFFER, _id);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * count, data, GL_STATIC_DRAW);
+    update(data, count);
 }
 
 vbuffer::~vbuffer()
@@ -28,6 +28,11 @@ void vbuffer::bind()
 void vbuffer::draw(GLint first, GLsizei count)
 {
     glDrawArrays(_type, first, count);
+}
+
+void vbuffer::update(const float *data, size_t count)
+{
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * count, data, GL_STATIC_DRAW);
 }
 
 void vbuffer::setup_attrib(GLint loc, GLint n, GLint offset, GLint size)

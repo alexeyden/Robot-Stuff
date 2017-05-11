@@ -30,8 +30,22 @@ public:
         return _fetcher;
     }
 
+    auto& views() {
+        return _views;
+    }
+
+    GLFWwindow* glfw_window() {
+        return _window;
+    }
+
+    float fps() const {
+        return _ticks_per_sec;
+    }
+
 private:
     static void on_resize(GLFWwindow* win, int width, int height);
+    static void on_mouse(GLFWwindow* win, double x, double y);
+    static void on_key(GLFWwindow* win, int key, int code, int action, int mods);
 
     fetcher _fetcher;
 
@@ -39,7 +53,12 @@ private:
     uint32_t _height;
 
     std::vector<std::shared_ptr<view>> _views;
+    size_t _cur_view;
     GLFWwindow* _window;
+
+    float _ticks_time;
+    float _ticks_per_sec;
+    uint32_t _ticks_count;
 };
 
 #endif // VIEW_WINDOW_H

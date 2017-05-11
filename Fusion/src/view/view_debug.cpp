@@ -8,18 +8,17 @@
 
 #include "view_window.h"
 
-const char* vert_2d_src =
+static const char* vert_2d_src =
 #include "2d_shader.vert"
 ;
 
-const char* frag_2d_src =
+static const char* frag_2d_src =
 #include "2d_shader.frag"
 ;
 
 view_debug::view_debug(view_window *parent) :
     view(parent),
-    _update_time(0.0f),
-    _ticks_time(0.0f), _ticks_per_sec(std::numeric_limits<float>::quiet_NaN()), _ticks_count(0)
+    _update_time(0.0f)
 {
     _2d_shader = std::shared_ptr<shader>(new shader(frag_2d_src, vert_2d_src));
     _font = std::shared_ptr<font>(new font("data/font.png", _2d_shader, 2.0f, 8, 8));
@@ -48,15 +47,6 @@ view_debug::~view_debug()
 void view_debug::update(float dt)
 {
     _update_time += dt;
-
-    _ticks_time += dt;
-    _ticks_count += 1;
-
-    if(_ticks_count > 10) {
-        _ticks_per_sec = _ticks_count / _ticks_time;
-        _ticks_time = 0.0f;
-        _ticks_count = 0;
-    }
 
     if(_update_time > 1) {
         {
@@ -123,7 +113,7 @@ void view_debug::draw()
     snprintf((char*) text_buf, 511, "DEBUG VIEW\n"
                                     "%s\n\n"
                                     "IPC tick = %.2f sec\n"
-                                    "FPS = %.2f", connected, _window->data_fetcher().update_time(), _ticks_per_sec);
+                                    "FPS = %.2f", connected, _window->data_fetcher().update_time(), _window->fps());
     _font->draw(text_buf, 10, 10);
 }
 

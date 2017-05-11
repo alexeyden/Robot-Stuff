@@ -50,6 +50,12 @@ Project {
         }
 
         files: [
+            "view/3d_shader.frag",
+            "view/3d_shader.vert",
+            "view/main_view.cpp",
+            "view/main_view.h",
+            "view/renderer.cpp",
+            "view/renderer.h",
             "view/texture.h",
             "view/vbuffer.cpp",
             "view/vbuffer.h",

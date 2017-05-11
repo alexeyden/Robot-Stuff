@@ -78,15 +78,32 @@ public:
         return const_iterator(*this, _fptr, true);
     }
 
-    void put(T&& item) {
+    size_t eptr() const {
+        return _eptr;
+    }
+
+    size_t fptr() const {
+        return _fptr;
+    }
+
+    const T* data() const {
+        return _data;
+    }
+
+    void put(const T& item) {
         if(_eptr != buf_size)
             _eptr ++;
 
-        _data[_fptr] = std::move(item);
+        _data[_fptr] = item;
         _fptr ++;
 
         if(_fptr == buf_size)
             _fptr = 0;
+    }
+
+    void reset() {
+        _fptr = 0;
+        _eptr = 0;
     }
 
     bool operator ==(const crbuffer<T, buf_size>& rhs) const {

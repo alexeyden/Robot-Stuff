@@ -2,22 +2,16 @@
 #define VREP_CLIENT_H
 
 #include <thread>
-#include <cmath>
+#include <glm/glm.hpp>
 
 #include "extApi.h"
-
-struct vec3_t {
-    float x;
-    float y;
-    float z;
-};
 
 struct usonic_msr_t {
     static constexpr float angle = M_PI * 30.0f / 180.0f;
     float dist;
 
-    vec3_t dir;
-    vec3_t pos;
+    glm::vec3 pos;
+    glm::vec3 dir;
 };
 
 template<typename T, size_t width, size_t height>
@@ -33,14 +27,15 @@ struct image_msr_t {
     }
 
     T* buf;
-    vec3_t dir;
-    vec3_t pos;
+    glm::vec3 dir;
+    glm::vec3 up;
+    glm::vec3 pos;
 };
 
 class vrep_client
 {
 public:
-    typedef image_msr_t<float, 256, 256> image_msr_laser_t;
+    typedef image_msr_t<float, 64, 64> image_msr_laser_t;
     typedef image_msr_t<uint8_t, 128, 128> image_msr_scam_t;
 
     static constexpr size_t USONIC_NUM = 3;

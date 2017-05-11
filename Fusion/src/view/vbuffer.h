@@ -11,6 +11,7 @@ public:
 
     void bind();
     void draw(GLint first, GLsizei count);
+    void update(const float* data, size_t count);
 
     void setup_attrib(GLint loc, GLint n, GLint offset, GLint size);
 
