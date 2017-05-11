@@ -22,6 +22,7 @@ public:
 private:
     float _time;
     bool _cursor;
+    bool _light;
 
     glm::vec3 _pos;
     glm::vec3 _dir;

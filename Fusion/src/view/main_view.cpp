@@ -1,6 +1,9 @@
 #include "main_view.h"
 
 #include <cstdio>
+#include <fstream>
+#include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 static const char* vert_2d_src =
@@ -29,6 +32,7 @@ main_view::main_view(view_window *parent) :
     _angle_v = 0.0f;
 
     _cursor = true;
+    _light = true;
 }
 
 void main_view::update(float dt)
@@ -62,6 +66,7 @@ void main_view::draw()
 
     _renderer.view = glm::lookAt(_pos, _pos - _dir, _up);
     _renderer.eye = _pos;
+    _renderer.light = _light;
     _renderer.render();
 
     _2d_shader->bind();
@@ -72,6 +77,8 @@ void main_view::draw()
 
     _font->draw((uint8_t*) "MAIN VIEW", 10, 10);
     _font->draw((uint8_t*) buf, 10, 24);
+
+    _font->draw((uint8_t*) "Keys:\np - dump point cloud\nl - lighting on\\off", 10, 40);
 
     if(!_cursor) {
         _font->draw((uint8_t*) "\x07", _window->width()/2 - 4, _window->height()/2 - 4);
@@ -113,5 +120,20 @@ void main_view::on_key(int k, bool r)
     else if(k == GLFW_KEY_SPACE && r && !_cursor) {
         glfwSetInputMode(_window->glfw_window(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         _cursor = true;
+    }
+    else if(k == GLFW_KEY_L && r) {
+        _light = !_light;
+    }
+    else if(k == GLFW_KEY_P && r) {
+        std::ofstream fs;
+        fs.open("points.txt");
+
+        bool norm = false;
+        for(const auto& item : _renderer.points_buf()) {
+            if(!norm)
+                fs << std::fixed << item.x << "," << item.y << "," << item.z << std::endl;
+            norm = !norm;
+        }
+        std::cout << "Point cloud was dumped to points.txt" << std::endl;
     }
 }

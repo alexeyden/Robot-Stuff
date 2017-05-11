@@ -42,6 +42,7 @@ void renderer::render()
     _shader->uniform_mat4("proj", _proj);
     _shader->uniform_mat4("model", view);
     _shader->uniform3f("eye", eye);
+    _shader->uniform1i("light", light);
 
     _plane->bind();
     _shader->uniform3f("color", glm::vec3(0.95f, 0.95f, 0.95f));

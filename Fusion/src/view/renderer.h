@@ -21,8 +21,13 @@ public:
 
     void upload_points(fetcher& fetcher);
 
+    const auto& points_buf() const {
+        return _points_buf;
+    }
+
     glm::mat4 view;
     glm::vec3 eye;
+    bool light;
 private:
     glm::mat4 _proj;
     static const size_t MAX_POINTS_COUNT = 100000;
