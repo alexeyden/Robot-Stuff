@@ -40,7 +40,7 @@ void main_view::update(float dt)
     _time += dt;
 
     if(_time > 2.0f) {
-        _renderer.upload_points(_window->data_fetcher());
+        _renderer.upload_points(_window->sensors_data());
         _time = 0.0f;
     }
 
@@ -72,13 +72,25 @@ void main_view::draw()
     _2d_shader->bind();
     _2d_shader->uniform_mat4("proj", _font_proj);
 
-    snprintf(buf, 511, "Pos: %.2f %.2f %.2f\nDir: %.2f %.2f %2f\nFPS: %.1f",
-             _pos.x, _pos.y, _pos.z, _dir.x, _dir.y, _dir.z, _window->fps());
+     snprintf(buf, 511, "pos: %.2f %.2f %.2f\n"
+                        "dir: %.2f %.2f %2f\n"
+                        "fps: %.1f\n"
+                        "pts_n: %lu\n"
+                        "pause: %d",
+             _pos.x, _pos.y, _pos.z,
+             _dir.x, _dir.y, _dir.z,
+             _window->fps(),
+             _renderer.points_count(),
+             _window->sensors_data().pause);
 
     _font->draw((uint8_t*) "MAIN VIEW", 10, 10);
     _font->draw((uint8_t*) buf, 10, 24);
 
-    _font->draw((uint8_t*) "Keys:\np - dump point cloud\nl - lighting on\\off", 10, 40);
+    _font->draw((uint8_t*) "Keys:\n"
+                           "c - dump point cloud\n"
+                           "l - lighting on\\off\n"
+                           "k - nuke cloud\n"
+                           "p - pause updates", 10, 60);
 
     if(!_cursor) {
         _font->draw((uint8_t*) "\x07", _window->width()/2 - 4, _window->height()/2 - 4);
@@ -124,16 +136,24 @@ void main_view::on_key(int k, bool r)
     else if(k == GLFW_KEY_L && r) {
         _light = !_light;
     }
-    else if(k == GLFW_KEY_P && r) {
+    else if(k == GLFW_KEY_C && r) {
         std::ofstream fs;
         fs.open("points.txt");
-
-        bool norm = false;
-        for(const auto& item : _renderer.points_buf()) {
-            if(!norm)
-                fs << std::fixed << item.x << "," << item.y << "," << item.z << std::endl;
-            norm = !norm;
+        auto& cld = _window->sensors_data().cloud();
+        cld.mutex().lock();
+        for(const point_t& p : cld.value().points()) {
+            fs << std::fixed << p.x << "," << p.y << "," << p.z << std::endl;
         }
+        cld.mutex().unlock();
         std::cout << "Point cloud was dumped to points.txt" << std::endl;
+    }
+    else if(k == GLFW_KEY_K && r) {
+        auto& cld = _window->sensors_data().cloud();
+        std::lock_guard<std::mutex> lock(cld.mutex());
+        cld.value().clear();
+        _renderer.clear_points();
+    }
+    else if(k == GLFW_KEY_P && r) {
+        _window->sensors_data().pause = !_window->sensors_data().pause;
     }
 }

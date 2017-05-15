@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "sensors/fetcher.h"
+#include "sensors/sensors.h"
 
 #include "view.h"
 
@@ -26,8 +26,8 @@ public:
         return _height;
     }
 
-    fetcher& data_fetcher() {
-        return _fetcher;
+    sensors& sensors_data() {
+        return _sensors;
     }
 
     auto& views() {
@@ -47,7 +47,7 @@ private:
     static void on_mouse(GLFWwindow* win, double x, double y);
     static void on_key(GLFWwindow* win, int key, int code, int action, int mods);
 
-    fetcher _fetcher;
+    sensors _sensors;
 
     uint32_t _width;
     uint32_t _height;

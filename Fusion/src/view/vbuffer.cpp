@@ -23,6 +23,12 @@ vbuffer::~vbuffer()
 void vbuffer::bind()
 {
     glBindVertexArray(_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, _id);
+}
+
+void vbuffer::unbind()
+{
+    glBindVertexArray(0);
 }
 
 void vbuffer::draw(GLint first, GLsizei count)
@@ -32,7 +38,7 @@ void vbuffer::draw(GLint first, GLsizei count)
 
 void vbuffer::update(const float *data, size_t count)
 {
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * count, data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * count, data, GL_DYNAMIC_DRAW);
 }
 
 void vbuffer::setup_attrib(GLint loc, GLint n, GLint offset, GLint size)

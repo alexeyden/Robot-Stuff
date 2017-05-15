@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.2.2, 2017-05-08T02:41:10. -->
+<!-- Written by QtCreator 4.2.2, 2017-05-15T04:47:30. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -218,7 +218,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qbs.RunConfiguration:fusion.qtc_Desktop_88e7a0ed---Qbs.RC.NameSeparator---fusion</value>
     <value type="QString" key="Qbs.RunConfiguration.CommandLineArguments"></value>
-    <value type="QString" key="Qbs.RunConfiguration.WorkingDirectory">/home/rtgbnm/Devel/Code/Active/Robot-Stuff/Fusion/src/</value>
+    <value type="QString" key="Qbs.RunConfiguration.WorkingDirectory">/home/rtgbnm/Devel/Code/Active/Robot-Stuff/Fusion/src</value>
     <value type="QString" key="Qbs.RunConfiguration.WorkingDirectory.default">/home/rtgbnm/Devel/Code/Active/Robot-Stuff/Fusion/build-fusion-Desktop-Debug/qtc_Desktop_88e7a0ed-debug/fusion.qtc-Desktop-88e7a0ed.cac78dd3</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>

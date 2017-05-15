@@ -10,6 +10,7 @@ public:
     ~vbuffer();
 
     void bind();
+    void unbind();
     void draw(GLint first, GLsizei count);
     void update(const float* data, size_t count);
 
@@ -21,6 +22,10 @@ public:
 
     GLuint vao() const {
         return _vao;
+    }
+
+    GLuint vbo() const {
+        return _id;
     }
 
 private:

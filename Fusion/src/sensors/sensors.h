@@ -5,24 +5,19 @@
 #include <mutex>
 #include <atomic>
 
+#include <glm/glm.hpp>
+
+#include "point_cloud.h"
 #include "crbuffer.h"
 #include "vrep_client.h"
 
-#include <glm/glm.hpp>
-
-struct usonic_point {
-    static constexpr float angle = usonic_msr_t::angle;
-    glm::vec3 pos;
-    glm::vec3 dir;
-};
-
-class fetcher
+class sensors
 {
 public:
     template<typename T>
     class resource {
     public:
-        resource() : _is_null(true) {}
+        resource() {}
 
         const T& value() const {
             return _value;
@@ -36,21 +31,20 @@ public:
             return _mutex;
         }
 
-        bool is_null() const {
-            return _is_null;
-        }
-
-        friend class fetcher;
+        friend class sensors;
 
     private:
         std::mutex _mutex;
         T _value;
-        bool _is_null;
     };
 
 public:
-    fetcher();
-    ~fetcher();
+    typedef resource<vrep_client::image_msr_laser_t> laser_img_res_t;
+    typedef resource<vrep_client::image_msr_scam_t[2]> scam_img_res_t;
+    typedef resource<point_cloud> cloud_res_t;
+
+    sensors();
+    ~sensors();
 
     void start();
     void stop();
@@ -63,22 +57,19 @@ public:
         return _update_time;
     }
 
-    resource<vrep_client::image_msr_laser_t>& laser_img()
-    {
+    laser_img_res_t& laser_img() {
         return _laser_img;
     }
 
-    resource<vrep_client::image_msr_scam_t[2]>& scam_img() {
+    scam_img_res_t& scam_img() {
         return _scam_img;
     }
 
-    auto& laser_points() {
-        return _laser_points;
+    cloud_res_t& cloud() {
+        return _cloud;
     }
 
-    typedef resource<crbuffer<usonic_point, 1024>> usonic_resource_t;
-    typedef resource<crbuffer<glm::vec3, 64 * 64 * 2>> laser_resource_t;
-
+    bool pause;
 private:
     void process_usonic(const usonic_msr_t& msr);
     void process_scam(const vrep_client::image_msr_scam_t& msr_left,
@@ -89,11 +80,9 @@ private:
 
     std::atomic<bool> _running;
 
-    resource<crbuffer<usonic_point, 1024>> _usonic_points;
-    resource<crbuffer<glm::vec3, 64 * 64 * 2>> _laser_points;
-
-    resource<vrep_client::image_msr_laser_t> _laser_img;
-    resource<vrep_client::image_msr_scam_t[2]> _scam_img;
+    laser_img_res_t _laser_img;
+    scam_img_res_t _scam_img;
+    cloud_res_t _cloud;
 
     vrep_client _client;
     std::thread _thread;

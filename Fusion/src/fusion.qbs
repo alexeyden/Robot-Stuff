@@ -1,13 +1,27 @@
 import qbs 1.0
+import qbs.Probes
 
 Project {
     name: "fusion"
     minimumQbsVersion: "1.6"
 
+    Product {
+        name: "pcl"
+        Export {
+            Depends { name: "cpp" }
+            cpp.systemIncludePaths: [
+                "/usr/include/pcl-1.8/",
+                "/usr/include/eigen3/"
+            ]
+            cpp.dynamicLibraries: [ "pcl_common", "pcl_octree", "pcl_search" ]
+        }
+    }
+
     StaticLibrary {
         name: "sensors"
 
         Depends { name: "cpp" }
+        Depends { name: "pcl" }
 
         cpp.defines: [
             "NON_MATLAB_PARSING",
@@ -19,6 +33,7 @@ Project {
 
         Export {
             Depends { name: "cpp" }
+            Depends { name: "pcl" }
             cpp.dynamicLibraries: [ "pthread" ]
         }
 
@@ -28,8 +43,10 @@ Project {
             "sensors/extApi.h",
             "sensors/extApiPlatform.cpp",
             "sensors/extApiPlatform.h",
-            "sensors/fetcher.cpp",
-            "sensors/fetcher.h",
+            "sensors/point_cloud.cpp",
+            "sensors/point_cloud.h",
+            "sensors/sensors.cpp",
+            "sensors/sensors.h",
             "sensors/vrep_client.cpp",
             "sensors/vrep_client.h",
         ]
@@ -39,6 +56,7 @@ Project {
         name: "view"
 
         Depends { name: "cpp" }
+        Depends { name: "pcl" }
 
         cpp.cxxLanguageVersion: "c++14"
         cpp.includePaths: [ "view/", "." ]
@@ -54,6 +72,8 @@ Project {
             "view/3d_shader.vert",
             "view/main_view.cpp",
             "view/main_view.h",
+            "view/point_shader.frag",
+            "view/point_shader.vert",
             "view/renderer.cpp",
             "view/renderer.h",
             "view/texture.h",
@@ -78,6 +98,7 @@ Project {
         name: "fusion"
 
         Depends { name: "view" }
+        Depends { name: "pcl" }
 
         cpp.includePaths: [ "." ]
         cpp.cxxLanguageVersion: "c++14"

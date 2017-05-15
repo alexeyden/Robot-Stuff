@@ -2,6 +2,7 @@
 #include "v_repConst.h"
 
 #include <cstring>
+#include <iostream>
 #include <cmath>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -50,32 +51,26 @@ bool vrep_client::is_connected() const
     return _conn_id != -1;
 }
 
-bool vrep_client::update_usonic(usonic_msr_t &msr)
+bool vrep_client::update_usonic(usonic_msr_t* msr)
 {
     bool any_ok = false;
     bool op_ok = false;
 
     for(size_t i = 0; i < USONIC_NUM; i++) {
-        float angles[3];
         simxFloat pos[3];
         simxFloat point[3];
         simxUChar state;
 
         op_ok =
-            simxGetObjectOrientation(_conn_id, _usonic_id[i], -1, angles, simx_opmode_blocking) == simx_return_ok &&
             simxGetObjectPosition(_conn_id, _usonic_id[i], -1, pos, simx_opmode_blocking) == simx_return_ok &&
             simxReadProximitySensor(_conn_id, _usonic_id[i], &state, point, nullptr, nullptr, simx_opmode_blocking);
 
         if(op_ok) {
-            glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(angles[0]), glm::vec3(1.0f, 0.0f, 0.0f)) *
-                    glm::rotate(glm::mat4(1.0f), glm::radians(angles[1]), glm::vec3(0.0f, 1.0f, 0.0f)) *
-                    glm::rotate(glm::mat4(1.0f), glm::radians(angles[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-            msr.dir = (rot * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-            msr.pos = glm::vec3(pos[0], pos[1], pos[2]);
-            msr.dist = sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2]);
+            msr[i].pos0 = glm::vec3(pos[0], pos[1], pos[2]);
+            msr[i].pos1 = glm::vec3(point[0], point[1], point[2]);
         }
 
-        any_ok |= op_ok;
+        any_ok &= op_ok;
     }
 
     return any_ok;
@@ -96,10 +91,6 @@ bool vrep_client::update_laser(vrep_client::image_msr_laser_t &msr)
         simxGetObjectOrientation(_conn_id, _lidar_cam_id, -1, angles, simx_opmode_blocking) == simx_return_ok &&
         simxGetObjectPosition(_conn_id, _lidar_cam_id, -1, pos, simx_opmode_blocking) == simx_return_ok &&
         simxGetVisionSensorDepthBuffer(_conn_id, _lidar_cam_id, resolution, &image, simx_opmode_blocking) == simx_return_ok;
-
-    bool image_changed = memcmp(image, msr.buf, msr.WIDTH * msr.HEIGHT * sizeof(float)) != 0;
-
-    op_ok &= image_changed;
 
     if(op_ok) {
         glm::mat4 rot = glm::rotate(glm::mat4(1.0f), angles[0], glm::vec3(1.0f, 0.0f, 0.0f)) *

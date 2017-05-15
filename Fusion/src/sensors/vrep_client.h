@@ -8,10 +8,8 @@
 
 struct usonic_msr_t {
     static constexpr float angle = M_PI * 30.0f / 180.0f;
-    float dist;
-
-    glm::vec3 pos;
-    glm::vec3 dir;
+    glm::vec3 pos0;
+    glm::vec3 pos1;
 };
 
 template<typename T, size_t width, size_t height>
@@ -61,7 +59,7 @@ public:
 
     bool is_connected() const;
 
-    bool update_usonic(usonic_msr_t& msr);
+    bool update_usonic(usonic_msr_t *msr);
     bool update_laser(vrep_client::image_msr_laser_t &msr);
     bool update_scam(vrep_client::image_msr_scam_t &lmsr, image_msr_scam_t &rmsr);
 

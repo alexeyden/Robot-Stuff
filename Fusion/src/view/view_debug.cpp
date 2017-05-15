@@ -50,25 +50,21 @@ void view_debug::update(float dt)
 
     if(_update_time > 1) {
         {
-            auto& laser_res = _window->data_fetcher().laser_img();
+            auto& laser_res = _window->sensors_data().laser_img();
             std::lock_guard<std::mutex>(laser_res.mutex());
-            if(!laser_res.is_null()) {
-                image<float> img(laser_res.value().buf, laser_res.value().WIDTH, laser_res.value().HEIGHT, 1);
-                _lidar_tex->bind();
-                _lidar_tex->update(&img);
-            }
+            image<float> img(laser_res.value().buf, laser_res.value().WIDTH, laser_res.value().HEIGHT, 1);
+            _lidar_tex->bind();
+            _lidar_tex->update(&img);
         }
         {
-            auto& scam_res = _window->data_fetcher().scam_img();
+            auto& scam_res = _window->sensors_data().scam_img();
             std::lock_guard<std::mutex>(scam_res.mutex());
-            if(!scam_res.is_null()) {
-                image<> left(scam_res.value()[0].buf, scam_res.value()[0].WIDTH, scam_res.value()[0].HEIGHT, 1);
-                image<> right(scam_res.value()[1].buf, scam_res.value()[1].WIDTH, scam_res.value()[1].HEIGHT, 1);
-                _cam_left_tex->bind();
-                _cam_left_tex->update(&left);
-                _cam_right_tex->bind();
-                _cam_right_tex->update(&right);
-            }
+            image<> left(scam_res.value()[0].buf, scam_res.value()[0].WIDTH, scam_res.value()[0].HEIGHT, 1);
+            image<> right(scam_res.value()[1].buf, scam_res.value()[1].WIDTH, scam_res.value()[1].HEIGHT, 1);
+            _cam_left_tex->bind();
+            _cam_left_tex->update(&left);
+            _cam_right_tex->bind();
+            _cam_right_tex->update(&right);
         }
         _update_time = 0.0f;
     }
@@ -109,11 +105,11 @@ void view_debug::draw()
     snprintf((char*) text_buf, 511, "Cam right (%lu x %lu):", _cam_right_tex->width(), _cam_right_tex->height());
     _font->draw(text_buf, 410, 240);
 
-    const char* connected = _window->data_fetcher().client().is_connected() ? "\x07 connected" : "\x09 disconnected";
+    const char* connected = _window->sensors_data().client().is_connected() ? "\x07 connected" : "\x09 disconnected";
     snprintf((char*) text_buf, 511, "DEBUG VIEW\n"
                                     "%s\n\n"
                                     "IPC tick = %.2f sec\n"
-                                    "FPS = %.2f", connected, _window->data_fetcher().update_time(), _window->fps());
+                                    "FPS = %.2f", connected, _window->sensors_data().update_time(), _window->fps());
     _font->draw(text_buf, 10, 10);
 }
 
@@ -124,8 +120,12 @@ void view_debug::resize(int w, int h)
 
 void view_debug::setup_lidar()
 {
-    float* zeros = new float[vrep_client::image_msr_laser_t::WIDTH * vrep_client::image_msr_laser_t::HEIGHT];
-    image<float> img(zeros, vrep_client::image_msr_laser_t::WIDTH, vrep_client::image_msr_laser_t::HEIGHT, 1, true);
+    const size_t W = vrep_client::image_msr_scam_t::WIDTH;
+    const size_t H = vrep_client::image_msr_scam_t::HEIGHT;
+
+    image<float> img(new float[W * H], W, H, 1, true);
+    for(size_t x = 0; x < W * H; x++) img.data()[x] = float(x) / (W*H);
+
     _lidar_tex = std::shared_ptr<texture<float>>(texture<float>::from_image(&img));
 
     GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
@@ -138,6 +138,7 @@ void view_debug::setup_cameras()
     const size_t H = vrep_client::image_msr_scam_t::HEIGHT;
 
     image<> tmp(new uint8_t[W * H], W, H, 1, true);
+    for(size_t x = 0; x < W * H; x++) tmp.data()[x] = x*255/(W*H);
 
     GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
 

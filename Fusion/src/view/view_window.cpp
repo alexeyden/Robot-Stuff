@@ -62,14 +62,14 @@ view_window::view_window(size_t width, size_t height)
     _ticks_time = 0.0f;
 
     std::cerr << "Window: starting fetcher thread.." << std::endl;
-    _fetcher.start();
+    _sensors.start();
 }
 
 view_window::~view_window()
 {
     std::cerr << "Window: waiting for fetcher thread to stop.." << std::endl;
 
-    _fetcher.stop();
+    _sensors.stop();
 
     glfwDestroyWindow(_window);
     glfwTerminate();
