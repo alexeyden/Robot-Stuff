@@ -13,7 +13,14 @@ Project {
                 "/usr/include/pcl-1.8/",
                 "/usr/include/eigen3/"
             ]
-            cpp.dynamicLibraries: [ "pcl_common", "pcl_octree", "pcl_search" ]
+            cpp.dynamicLibraries: [
+                "pcl_common",
+                "pcl_octree",
+                "pcl_search",
+                "pcl_surface",
+                "pcl_kdtree",
+                "flann_cpp"
+            ]
         }
     }
 
@@ -29,12 +36,19 @@ Project {
         ]
 
         cpp.cxxLanguageVersion: "c++14"
+        cpp.useCxxPrecompiledHeader: true
         cpp.includePaths: [ "sensors/" ]
 
         Export {
-            Depends { name: "cpp" }
             Depends { name: "pcl" }
+            Depends { name: "cpp" }
             cpp.dynamicLibraries: [ "pthread" ]
+        }
+
+        Group {
+            name: "pch"
+            files: ["sensors/pch.h"]
+            fileTags: ["cpp_pch_src"]
         }
 
         files: [
@@ -43,6 +57,9 @@ Project {
             "sensors/extApi.h",
             "sensors/extApiPlatform.cpp",
             "sensors/extApiPlatform.h",
+            "sensors/mesh.cpp",
+            "sensors/mesh.h",
+            "sensors/mesh_types.cpp",
             "sensors/point_cloud.cpp",
             "sensors/point_cloud.h",
             "sensors/sensors.cpp",
@@ -56,14 +73,14 @@ Project {
         name: "view"
 
         Depends { name: "cpp" }
-        Depends { name: "pcl" }
+        Depends { name: "sensors" }
 
         cpp.cxxLanguageVersion: "c++14"
         cpp.includePaths: [ "view/", "." ]
 
         Export {
-            Depends { name: "cpp" }
             Depends { name: "sensors" }
+            Depends { name: "cpp" }
             cpp.dynamicLibraries: [ "glfw", "png", "GLEW", "GL", "GLU" ]
         }
 
@@ -98,7 +115,6 @@ Project {
         name: "fusion"
 
         Depends { name: "view" }
-        Depends { name: "pcl" }
 
         cpp.includePaths: [ "." ]
         cpp.cxxLanguageVersion: "c++14"
@@ -106,3 +122,4 @@ Project {
         files: [ "main.cpp" ]
     }
 }
+

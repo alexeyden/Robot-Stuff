@@ -1,10 +1,14 @@
 #ifndef MAIN_VIEW_H
 #define MAIN_VIEW_H
 
+#include <future>
+
 #include "font.h"
 #include "view.h"
 #include "view_window.h"
 #include "renderer.h"
+
+#include "sensors/mesh.h"
 
 #include <GLFW/glfw3.h>
 
@@ -19,7 +23,10 @@ public:
     virtual void on_mouse(float x, float y) override;
     virtual void on_key(int k, bool r) override;
 
+    virtual void resize(int w, int h) override;
 private:
+    void update_mesh(const mesh_builder::data_t &points);
+
     float _time;
     bool _cursor;
     bool _light;
@@ -36,6 +43,7 @@ private:
 
     std::shared_ptr<font> _font;
     std::shared_ptr<shader> _2d_shader;
+    mesh_builder _mesh_builder;
 
     renderer _renderer;
 };

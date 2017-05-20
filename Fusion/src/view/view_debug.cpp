@@ -22,6 +22,7 @@ view_debug::view_debug(view_window *parent) :
 {
     _2d_shader = std::shared_ptr<shader>(new shader(frag_2d_src, vert_2d_src));
     _font = std::shared_ptr<font>(new font("data/font.png", _2d_shader, 2.0f, 8, 8));
+    _font->color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     _proj = glm::ortho(0.0f, (float) parent->width(), (float) parent->height(), 0.0f);
 
@@ -105,11 +106,11 @@ void view_debug::draw()
     snprintf((char*) text_buf, 511, "Cam right (%lu x %lu):", _cam_right_tex->width(), _cam_right_tex->height());
     _font->draw(text_buf, 410, 240);
 
-    const char* connected = _window->sensors_data().client().is_connected() ? "\x07 connected" : "\x09 disconnected";
-    snprintf((char*) text_buf, 511, "DEBUG VIEW\n"
+    const char* connected = _window->sensors_data().client().is_connected() ? "connected" : "disconnected";
+    snprintf((char*) text_buf, 511, "RAW\n"
                                     "%s\n\n"
-                                    "IPC tick = %.2f sec\n"
-                                    "FPS = %.2f", connected, _window->sensors_data().update_time(), _window->fps());
+                                    "IPC tick = %.2f sec\n",
+                                     connected, _window->sensors_data().update_time());
     _font->draw(text_buf, 10, 10);
 }
 
@@ -124,7 +125,7 @@ void view_debug::setup_lidar()
     const size_t H = vrep_client::image_msr_scam_t::HEIGHT;
 
     image<float> img(new float[W * H], W, H, 1, true);
-    for(size_t x = 0; x < W * H; x++) img.data()[x] = float(x) / (W*H);
+    for(size_t x = 0; x < W * H; x++) img.data()[x] = 1.0f;
 
     _lidar_tex = std::shared_ptr<texture<float>>(texture<float>::from_image(&img));
 
@@ -138,7 +139,7 @@ void view_debug::setup_cameras()
     const size_t H = vrep_client::image_msr_scam_t::HEIGHT;
 
     image<> tmp(new uint8_t[W * H], W, H, 1, true);
-    for(size_t x = 0; x < W * H; x++) tmp.data()[x] = x*255/(W*H);
+    memset(tmp.data(), 0xff, W * H);
 
     GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
 

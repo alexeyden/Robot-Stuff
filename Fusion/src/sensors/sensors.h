@@ -1,15 +1,11 @@
 #ifndef FETCHER_H
 #define FETCHER_H
 
-#include <thread>
-#include <mutex>
-#include <atomic>
+#include "pch.h"
 
-#include <glm/glm.hpp>
-
-#include "point_cloud.h"
 #include "crbuffer.h"
 #include "vrep_client.h"
+#include "point_cloud.h"
 
 class sensors
 {

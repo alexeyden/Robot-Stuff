@@ -1,11 +1,6 @@
 #include "vrep_client.h"
+
 #include "v_repConst.h"
-
-#include <cstring>
-#include <iostream>
-#include <cmath>
-
-#include <glm/gtc/matrix_transform.hpp>
 
 vrep_client::vrep_client() :
     _conn_id(-1),
@@ -53,21 +48,34 @@ bool vrep_client::is_connected() const
 
 bool vrep_client::update_usonic(usonic_msr_t* msr)
 {
-    bool any_ok = false;
+    bool any_ok = true;
     bool op_ok = false;
 
     for(size_t i = 0; i < USONIC_NUM; i++) {
         simxFloat pos[3];
         simxFloat point[3];
-        simxUChar state;
+        simxFloat angles[3];
+        simxUChar state = 0;
 
         op_ok =
+            simxGetObjectOrientation(_conn_id, _usonic_id[i], -1, angles, simx_opmode_blocking) == simx_return_ok &&
             simxGetObjectPosition(_conn_id, _usonic_id[i], -1, pos, simx_opmode_blocking) == simx_return_ok &&
-            simxReadProximitySensor(_conn_id, _usonic_id[i], &state, point, nullptr, nullptr, simx_opmode_blocking);
+            simxReadProximitySensor(_conn_id, _usonic_id[i], &state, point, nullptr, nullptr, simx_opmode_blocking) == simx_return_ok;
 
         if(op_ok) {
-            msr[i].pos0 = glm::vec3(pos[0], pos[1], pos[2]);
-            msr[i].pos1 = glm::vec3(point[0], point[1], point[2]);
+            glm::mat4 rot = glm::rotate(glm::mat4(1.0f), angles[0], glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), angles[1], glm::vec3(0.0f, 1.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), angles[2], glm::vec3(0.0f, 0.0f, 1.0f));
+
+            auto ps = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
+            float dist = glm::length(glm::vec3(point[0], point[1], point[2]));
+
+            if(state == 0)
+                dist = 4.0f;
+
+            msr[i].pos0 = ps;
+            msr[i].pos1 = rot * glm::vec4(0.0f, 0.00f, 1.0f, 1.0f) * dist + ps;
+            msr[i].maxed = state == 0;
         }
 
         any_ok &= op_ok;

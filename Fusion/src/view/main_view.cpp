@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -19,16 +20,17 @@ main_view::main_view(view_window *parent) :
 {
     _2d_shader = std::shared_ptr<shader>(new shader(frag_2d_src, vert_2d_src));
     _font = std::shared_ptr<font>(new font("data/font.png", _2d_shader, 2.0f, 8, 8));
+    _font->color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     _font_proj = glm::ortho(0.0f, (float) parent->width(), (float) parent->height(), 0.0f);
 
     _time = 0.0f;
 
-    _pos = glm::vec3(0.0f, 0.0f, 1.0f);
+    _pos = glm::vec3(0.0f, 14.0f, 4.0f);
     _dir = glm::vec3(0.0f, 1.0f, 0.0f);
     _up = glm::vec3(0.0f, 0.0f, 1.0f);
 
-    _angle_h = 0.0f;
+    _angle_h = -0.54f;
     _angle_v = 0.0f;
 
     _cursor = true;
@@ -57,6 +59,13 @@ void main_view::update(float dt)
         _pos += glm::normalize(glm::cross(_up, _dir)) * dt * 5.0f;
     }
 
+    if(_mesh_builder.result().valid() &&
+            _mesh_builder.result().wait_for(std::chrono::seconds(0)) == std::future_status::ready){
+        auto res = _mesh_builder.result().get();
+        _renderer.upload_mesh(*res);
+        _mesh_builder.reset();
+    }
+
     _renderer.update(dt);
 }
 
@@ -66,31 +75,59 @@ void main_view::draw()
 
     _renderer.view = glm::lookAt(_pos, _pos - _dir, _up);
     _renderer.eye = _pos;
+    _renderer.dir = _dir;
     _renderer.light = _light;
     _renderer.render();
 
     _2d_shader->bind();
     _2d_shader->uniform_mat4("proj", _font_proj);
 
-     snprintf(buf, 511, "pos: %.2f %.2f %.2f\n"
-                        "dir: %.2f %.2f %2f\n"
-                        "fps: %.1f\n"
-                        "pts_n: %lu\n"
-                        "pause: %d",
+    bool mesh_job = _mesh_builder.result().valid() &&
+            _mesh_builder.result().wait_for(std::chrono::seconds(0)) == std::future_status::timeout;
+
+     snprintf(buf, 511, "pos = %.2f %.2f %.2f\n"
+                        "a = %.21 b = %.21\n"
+                        "---------------------------\n"
+                        "fps = %.1f\n"
+                        "---------------------------\n"
+                        "pts_n = %lu\n"
+                        "vtx_n = %lu\n"
+                        "---------------------------\n"
+                        "thresh = %.1f\n"
+                        "---------------------------\n"
+                        "mesh job = %d\n"
+                        "---------------------------\n"
+                        "pause = %d",
              _pos.x, _pos.y, _pos.z,
-             _dir.x, _dir.y, _dir.z,
+              glm::degrees(_angle_h), glm::degrees(_angle_v),
              _window->fps(),
              _renderer.points_count(),
+             _renderer.vertex_count(),
+             _renderer.thresh,
+             mesh_job,
              _window->sensors_data().pause);
 
-    _font->draw((uint8_t*) "MAIN VIEW", 10, 10);
-    _font->draw((uint8_t*) buf, 10, 24);
+    if(_renderer.points_mode)
+        _font->draw((uint8_t*) "CLOUD", 10, 10);
+    else
+        _font->draw((uint8_t*) "MESH", 10, 10);
 
-    _font->draw((uint8_t*) "Keys:\n"
-                           "c - dump point cloud\n"
-                           "l - lighting on\\off\n"
-                           "k - nuke cloud\n"
-                           "p - pause updates", 10, 60);
+    _font->draw((uint8_t*) buf, 10, 40);
+
+    _font->draw((uint8_t*) "l - lights\n"
+                           "o - points\\mesh\n"
+                           "e - ground plane\n"
+                           "---------------------------\n"
+                           "c - dump\n"
+                           "k - nuke\n"
+                           "---------------------------\n"
+                           "v - build mesh (greedy)\n"
+                           "b - build mesh (poisson)\n"
+                           "n - build mesh (grid proj)\n"
+                           "---------------------------\n"
+                           "t - p=0.6 cut off\n"
+                           "---------------------------\n"
+                           "p - pause", 10, 200);
 
     if(!_cursor) {
         _font->draw((uint8_t*) "\x07", _window->width()/2 - 4, _window->height()/2 - 4);
@@ -134,7 +171,7 @@ void main_view::on_key(int k, bool r)
         _cursor = true;
     }
     else if(k == GLFW_KEY_L && r) {
-        _light = !_light;
+        _light ^= true;
     }
     else if(k == GLFW_KEY_C && r) {
         std::ofstream fs;
@@ -154,6 +191,30 @@ void main_view::on_key(int k, bool r)
         _renderer.clear_points();
     }
     else if(k == GLFW_KEY_P && r) {
-        _window->sensors_data().pause = !_window->sensors_data().pause;
+        _window->sensors_data().pause ^= true;
     }
+    else if(k == GLFW_KEY_T && r) {
+        _renderer.thresh = (_renderer.thresh == 0.6f) ? 0.0f : 0.6f;
+    }
+    else if(k == GLFW_KEY_O && r) {
+        _renderer.points_mode ^= true;
+    }
+    else if(k == GLFW_KEY_V && r) {
+        _mesh_builder.build(_window->sensors_data().cloud(), mesh_builder::method::GREEDY);
+    }
+    else if(k == GLFW_KEY_B && r) {
+        _mesh_builder.build(_window->sensors_data().cloud(), mesh_builder::method::POISSON);
+    }
+    else if(k == GLFW_KEY_N && r) {
+        _mesh_builder.loc = _pos;
+        _mesh_builder.build(_window->sensors_data().cloud(), mesh_builder::method::GRID_PROJ);
+    }
+    else if(k == GLFW_KEY_E && r) {
+        _renderer.ground_plane ^= true;
+    }
+}
+
+void main_view::resize(int w, int h) {
+  _font_proj = glm::ortho(0.0f, (float) w, (float) h, 0.0f);
+  _renderer.resize();
 }

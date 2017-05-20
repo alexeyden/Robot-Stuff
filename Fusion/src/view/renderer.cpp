@@ -41,7 +41,10 @@ renderer::renderer(const view_window &window) :
     _plane->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 6);
     _plane->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 6);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    _mesh = std::shared_ptr<vbuffer>(new vbuffer(nullptr, 0, GL_TRIANGLES));
+    _mesh->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 6);
+    _mesh->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 6);
+
     float tmp[] = { 0.0f, 0.0f, 1.0f, 0.0f };
     _point_shader->bind();
     _points = std::shared_ptr<vbuffer>(new vbuffer(tmp, 4, GL_POINTS));
@@ -49,6 +52,9 @@ renderer::renderer(const view_window &window) :
     _points->setup_attrib(_point_shader->get_attrib_location("prob"), 1, 3, 4);
 
     _points_n = 1;
+    _verts_n = 0;
+
+    thresh = 0.0f;
 }
 
 void renderer::update(float dt)
@@ -62,20 +68,26 @@ void renderer::render()
     _shader->uniform_mat4("proj", _proj);
     _shader->uniform_mat4("model", view);
     _shader->uniform3f("eye", eye);
+    _shader->uniform3f("eye_dir", dir);
     _shader->uniform1i("light", light);
 
-    _plane->bind();
-    _shader->uniform3f("color", glm::vec3(0.95f, 0.95f, 0.95f));
-    _plane->draw(0, 4);
-    _plane->unbind();
+    if(ground_plane) {
+        _plane->bind();
+        _shader->uniform3f("color", glm::vec3(0.55f, 0.55f, 0.55f));
+        _plane->draw(0, 4);
+        _plane->unbind();
+    }
 
     if(!points_mode) {
-        // teehee
+        _shader->uniform3f("color", glm::vec3(0.2f, 0.5f, 0.2f));
+        _mesh->bind();
+        _mesh->draw(0, _verts_n);
     }
     else {
         _point_shader->bind();
         _point_shader->uniform_mat4("proj", _proj);
         _point_shader->uniform_mat4("model", view);
+        _point_shader->uniform1f("thresh", thresh);
 
         _points->bind();
         _points->draw(0, _points_n);
@@ -114,8 +126,20 @@ void renderer::upload_points(sensors& fetcher)
     delete[] buf;
 }
 
+void renderer::upload_mesh(const std::vector<float> &data)
+{
+    _verts_n = data.size() / 6;
+
+    _mesh->bind();
+    _mesh->update(data.data(), data.size());
+}
+
 void renderer::clear_points()
 {
     _points->bind();
     _points->update(nullptr, 0);
+}
+
+void renderer::resize() {
+    _proj = glm::perspective(glm::radians(45.0f), _window.width() / (float) _window.height(), 0.1f, 100.0f);
 }

@@ -1,11 +1,5 @@
 #include "sensors.h"
 
-#include <iostream>
-#include <chrono>
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/random.hpp>
-
 sensors::sensors():
     _update_time(0.0f), _running(false)
 {
@@ -75,11 +69,13 @@ void sensors::stop()
 
 void sensors::process_usonic(const usonic_msr_t &msr)
 {
-    _cloud._value.add_usonic(msr.pos0, msr.pos1, msr.angle);
+    _cloud._value.add_usonic(msr.pos0, msr.pos1, msr.angle, msr.maxed);
 }
 
 void sensors::process_scam(const vrep_client::image_msr_scam_t &msr_left, const vrep_client::image_msr_scam_t &msr_right)
 {
+    (void) msr_left;
+    (void) msr_right;
     //teehee
 }
 

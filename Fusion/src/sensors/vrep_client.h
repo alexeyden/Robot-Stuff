@@ -1,8 +1,7 @@
 #ifndef VREP_CLIENT_H
 #define VREP_CLIENT_H
 
-#include <thread>
-#include <glm/glm.hpp>
+#include "pch.h"
 
 #include "extApi.h"
 
@@ -10,6 +9,7 @@ struct usonic_msr_t {
     static constexpr float angle = M_PI * 30.0f / 180.0f;
     glm::vec3 pos0;
     glm::vec3 pos1;
+    bool maxed;
 };
 
 template<typename T, size_t width, size_t height>
