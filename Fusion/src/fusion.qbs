@@ -93,6 +93,7 @@ Project {
             "view/point_shader.vert",
             "view/renderer.cpp",
             "view/renderer.h",
+            "view/shaders.cpp",
             "view/texture.h",
             "view/vbuffer.cpp",
             "view/vbuffer.h",

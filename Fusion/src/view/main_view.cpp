@@ -7,18 +7,13 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-static const char* vert_2d_src =
-#include "2d_shader.vert"
-;
-
-static const char* frag_2d_src =
-#include "2d_shader.frag"
-;
+extern const char* SHADER_2D_VS;
+extern const char* SHADER_2D_FS;
 
 main_view::main_view(view_window *parent) :
     view(parent), _renderer(*parent)
 {
-    _2d_shader = std::shared_ptr<shader>(new shader(frag_2d_src, vert_2d_src));
+    _2d_shader = std::shared_ptr<shader>(new shader(SHADER_2D_FS, SHADER_2D_VS));
     _font = std::shared_ptr<font>(new font("data/font.png", _2d_shader, 2.0f, 8, 8));
     _font->color = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -35,6 +30,17 @@ main_view::main_view(view_window *parent) :
 
     _cursor = true;
     _light = true;
+
+    float data[] = {
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 1.0f, 1.0f
+    };
+
+    _quad_buf = std::shared_ptr<vbuffer>(new vbuffer(data, 16, GL_TRIANGLE_STRIP));
+    _quad_buf->setup_attrib(_2d_shader->get_attrib_location("position"), 2, 0, 4);
+    _quad_buf->setup_attrib(_2d_shader->get_attrib_location("uvp"), 2, 2, 4);
 }
 
 void main_view::update(float dt)
@@ -47,16 +53,16 @@ void main_view::update(float dt)
     }
 
     if(glfwGetKey(_window->glfw_window(), GLFW_KEY_W) == GLFW_PRESS) {
-        _pos -= _dir * dt * 10.0f;
-    }
-    if(glfwGetKey(_window->glfw_window(), GLFW_KEY_S) == GLFW_PRESS) {
         _pos += _dir * dt * 10.0f;
     }
+    if(glfwGetKey(_window->glfw_window(), GLFW_KEY_S) == GLFW_PRESS) {
+        _pos -= _dir * dt * 10.0f;
+    }
     if(glfwGetKey(_window->glfw_window(), GLFW_KEY_A) == GLFW_PRESS) {
-        _pos -= glm::normalize(glm::cross(_up, _dir)) * dt * 5.0f;
+        _pos += glm::normalize(glm::cross(_up, _dir)) * dt * 5.0f;
     }
     if(glfwGetKey(_window->glfw_window(), GLFW_KEY_D) == GLFW_PRESS) {
-        _pos += glm::normalize(glm::cross(_up, _dir)) * dt * 5.0f;
+        _pos -= glm::normalize(glm::cross(_up, _dir)) * dt * 5.0f;
     }
 
     if(_mesh_builder.result().valid() &&
@@ -73,7 +79,7 @@ void main_view::draw()
 {
     static char buf[512];
 
-    _renderer.view = glm::lookAt(_pos, _pos - _dir, _up);
+    _renderer.view = glm::lookAt(_pos, _pos + _dir, _up);
     _renderer.eye = _pos;
     _renderer.dir = _dir;
     _renderer.light = _light;
@@ -86,12 +92,12 @@ void main_view::draw()
             _mesh_builder.result().wait_for(std::chrono::seconds(0)) == std::future_status::timeout;
 
      snprintf(buf, 511, "pos = %.2f %.2f %.2f\n"
-                        "a = %.21 b = %.21\n"
+                        "a = %.1f b = %.1f\n"
                         "---------------------------\n"
                         "fps = %.1f\n"
                         "---------------------------\n"
                         "pts_n = %lu\n"
-                        "vtx_n = %lu\n"
+                        "trg_n = %lu\n"
                         "---------------------------\n"
                         "thresh = %.1f\n"
                         "---------------------------\n"
@@ -102,7 +108,7 @@ void main_view::draw()
               glm::degrees(_angle_h), glm::degrees(_angle_v),
              _window->fps(),
              _renderer.points_count(),
-             _renderer.vertex_count(),
+             _renderer.vertex_count() / 3,
              _renderer.thresh,
              mesh_job,
              _window->sensors_data().pause);
@@ -115,6 +121,7 @@ void main_view::draw()
     _font->draw((uint8_t*) buf, 10, 40);
 
     _font->draw((uint8_t*) "l - lights\n"
+                           "; - shadow\n"
                            "o - points\\mesh\n"
                            "e - ground plane\n"
                            "---------------------------\n"
@@ -125,7 +132,7 @@ void main_view::draw()
                            "b - build mesh (poisson)\n"
                            "n - build mesh (grid proj)\n"
                            "---------------------------\n"
-                           "t - p=0.6 cut off\n"
+                           "t - p thr. cut off\n"
                            "---------------------------\n"
                            "p - pause", 10, 200);
 
@@ -133,6 +140,19 @@ void main_view::draw()
         _font->draw((uint8_t*) "\x07", _window->width()/2 - 4, _window->height()/2 - 4);
     }
 
+    /*
+    glDisable(GL_DEPTH_TEST);
+    _quad_buf->bind();
+    glm::mat4 scaled = glm::scale(glm::mat4(1.0f), glm::vec3(200.0f, 200.0f, 0.0f));
+    glm::mat4 ident = glm::mat4(1.0f);
+
+    _2d_shader->uniform1i("tex", 0);
+
+    glBindTexture(GL_TEXTURE_2D, _renderer.shadow_tex());
+    _2d_shader->uniform_mat4("model", glm::translate(ident, glm::vec3(20, 20, 0)) * scaled);
+    _quad_buf->draw(0, 4);
+    glEnable(GL_DEPTH_TEST);
+    */
 }
 
 void main_view::on_mouse(float x, float y)
@@ -141,7 +161,7 @@ void main_view::on_mouse(float x, float y)
         float dx = x - _mouse.x;
         float dy = y - _mouse.y;
 
-        _angle_v -= dy * 0.01;
+        _angle_v += dy * 0.01;
         _angle_h -= dx * 0.01;
 
         glm::vec3 dir_axis(0.0f, 1.0f, 0.0f);
@@ -211,6 +231,9 @@ void main_view::on_key(int k, bool r)
     }
     else if(k == GLFW_KEY_E && r) {
         _renderer.ground_plane ^= true;
+    }
+    else if(k == GLFW_KEY_SEMICOLON && r) {
+        _renderer.shadow ^= true;
     }
 }
 

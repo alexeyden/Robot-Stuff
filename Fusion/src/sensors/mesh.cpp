@@ -65,21 +65,17 @@ bool mesh_builder::build(sensors::cloud_res_t &cloud_res, method m)
             const pcl::PointNormal& p2 = polygons.first->points[v.vertices[2]];
             const pcl::PointNormal& p3 = polygons.first->points[v.vertices[0]];
 
-	    /*
             glm::vec3 norm = glm::normalize(glm::cross(
                         glm::vec3(p2.x, p2.y, p2.z) - glm::vec3(p1.x, p1.y, p1.z),
                         glm::vec3(p3.x, p3.y, p3.z) - glm::vec3(p1.x, p1.y, p1.z)));
 
-            float verts[] = {
-                p1.x, p1.y, p1.z, norm.x, norm.y, norm.z,
-                p2.x, p2.y, p2.z, norm.x, norm.y, norm.z,
-                p3.x, p3.y, p3.z, norm.x, norm.y, norm.z
-            };
-	    */
+
+            /*
 	    glm::vec3 norm = glm::normalize(glm::vec3(
 				       (p1.x + p2.x + p3.x)/3.0f, 
 				       (p1.y + p2.y + p3.y)/3.0f, 
 				       (p1.z + p2.z + p3.z)/3.0f)); 
+                       */
 
             float verts[] = {
                 p1.x, p1.y, p1.z, norm.x, norm.y, norm.z,

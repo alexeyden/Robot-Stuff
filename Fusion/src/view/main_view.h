@@ -41,6 +41,7 @@ private:
 
     glm::vec2 _mouse;
 
+    std::shared_ptr<vbuffer> _quad_buf;
     std::shared_ptr<font> _font;
     std::shared_ptr<shader> _2d_shader;
     mesh_builder _mesh_builder;

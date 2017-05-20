@@ -15,9 +15,10 @@ view_window::view_window(size_t width, size_t height)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
+    glfwWindowHint(GLFW_RESIZABLE, false);
     _window = glfwCreateWindow(width, height, "View", nullptr, nullptr);
+    glfwSetWindowSize(_window, 800, 600);
     glfwSetWindowUserPointer(_window, this);
-    glfwSetFramebufferSizeCallback(_window, &on_resize);
     glfwSetCursorPosCallback(_window, &on_mouse);
     glfwSetKeyCallback(_window, &on_key);
 
@@ -41,7 +42,7 @@ view_window::view_window(size_t width, size_t height)
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
-    glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
+    glClearColor(0.11, 0.17, 0.3, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 

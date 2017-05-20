@@ -40,15 +40,27 @@ public:
     bool light = true;
     bool points_mode = true;
     bool ground_plane = true;
+    bool shadow = true;
     float thresh;
+
+    GLuint shadow_tex() const {
+        return _shadow_map;
+    }
+
 private:
+    void init_shadows();
+
     glm::mat4 _proj;
 
     size_t _points_n;
     size_t _verts_n;
 
+    GLuint _fbo;
+    GLuint _shadow_map;
+
     std::shared_ptr<shader> _shader;
     std::shared_ptr<shader> _point_shader;
+    std::shared_ptr<shader> _shadow_shader;
     std::shared_ptr<vbuffer> _points;
     std::shared_ptr<vbuffer> _plane;
     std::shared_ptr<vbuffer> _mesh;

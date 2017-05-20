@@ -8,19 +8,14 @@
 
 #include "view_window.h"
 
-static const char* vert_2d_src =
-#include "2d_shader.vert"
-;
-
-static const char* frag_2d_src =
-#include "2d_shader.frag"
-;
+extern const char* SHADER_2D_VS;
+extern const char* SHADER_2D_FS;
 
 view_debug::view_debug(view_window *parent) :
     view(parent),
     _update_time(0.0f)
 {
-    _2d_shader = std::shared_ptr<shader>(new shader(frag_2d_src, vert_2d_src));
+    _2d_shader = std::shared_ptr<shader>(new shader(SHADER_2D_FS, SHADER_2D_VS));
     _font = std::shared_ptr<font>(new font("data/font.png", _2d_shader, 2.0f, 8, 8));
     _font->color = glm::vec3(1.0f, 1.0f, 1.0f);
 
