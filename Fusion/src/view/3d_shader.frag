@@ -7,6 +7,7 @@ in vec4 v_light_pos;
 
 uniform vec3 color;
 uniform vec3 eye;
+uniform vec3 light_dir;
 uniform sampler2D map;
 uniform bool light;
 uniform bool shadow;
@@ -37,7 +38,7 @@ float CalcShadowFactor()
 
 void main() {
         if(light) {
-            vec3 l = vec3(0.0, 8.0, 0.0) - vec3(20.0, 20.0, 20.0);
+            vec3 l = light_dir;
             vec3 view = normalize(eye - v_pos);
             vec3 norm = normalize(v_norm);
 

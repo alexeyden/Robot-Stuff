@@ -20,12 +20,14 @@ public:
     void resize();
     void render();
 
-    void upload_points(sensors& sensors);
+    bool upload_points(sensors& sensors);
     void upload_mesh(const std::vector<float>& data);
 
     glm::mat4 view;
     glm::vec3 eye;
     glm::vec3 dir;
+    glm::vec3 light_pos;
+    glm::vec3 light_target;
 
     size_t points_count() const {
         return _points_n;

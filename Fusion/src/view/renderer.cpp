@@ -63,6 +63,9 @@ renderer::renderer(const view_window &window) :
     _points_n = 1;
     _verts_n = 0;
 
+    light_pos = glm::vec3(20.0f, 20.f, 20.0f);
+    light_target = glm::vec3(0.0f, 8.0f, 0.0f);
+
     thresh = 0.0f;
 }
 
@@ -73,8 +76,8 @@ void renderer::update(float dt)
 
 void renderer::render()
 {
-    glm::vec3 lp0 = glm::vec3(10.0f, 10.0f, 10.0f);
-    glm::vec3 lp1 = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 lp0 = light_pos;
+    glm::vec3 lp1 = light_target;
     glm::vec3 dir =  glm::normalize(lp1 - lp0);
     glm::vec3 right = glm::normalize(glm::cross(dir, glm::vec3(0.0f, 0.0f, 1.0f)));
     glm::mat4 model =
@@ -101,6 +104,7 @@ void renderer::render()
     _shader->uniform_mat4("model", view);
     _shader->uniform3f("eye", eye);
     _shader->uniform1i("light", light);
+    _shader->uniform3f("light_dir", light_target - light_pos);
     _shader->uniform1i("shadow", use_shadow);
 
     if(use_shadow) {
@@ -137,16 +141,17 @@ void renderer::render()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderer::upload_points(sensors& fetcher)
+bool renderer::upload_points(sensors& fetcher)
 {
     sensors::cloud_res_t& res = fetcher.cloud();
 
-    res.mutex().lock();
+    if(!res.mutex().try_lock())
+        return false;
     size_t to_load = res.value().points().size();
 
     if(to_load == 0) {
         res.mutex().unlock();
-        return;
+        return true;
     }
 
     float* buf = new float[4 * to_load];
@@ -166,6 +171,7 @@ void renderer::upload_points(sensors& fetcher)
     _points->update(buf, to_load * 4);
 
     delete[] buf;
+    return true;
 }
 
 void renderer::upload_mesh(const std::vector<float> &data)

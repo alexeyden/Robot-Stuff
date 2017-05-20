@@ -21,11 +21,11 @@ main_view::main_view(view_window *parent) :
 
     _time = 0.0f;
 
-    _pos = glm::vec3(0.0f, 14.0f, 4.0f);
+    _pos = glm::vec3(-4.0f, 11.0f, 2.0f);
     _dir = glm::vec3(0.0f, 1.0f, 0.0f);
     _up = glm::vec3(0.0f, 0.0f, 1.0f);
 
-    _angle_h = -0.54f;
+    _angle_h = 0.0f;
     _angle_v = 0.0f;
 
     _cursor = true;
@@ -47,8 +47,7 @@ void main_view::update(float dt)
 {
     _time += dt;
 
-    if(_time > 2.0f) {
-        _renderer.upload_points(_window->sensors_data());
+    if(_time > 2.0f && _renderer.upload_points(_window->sensors_data())) {
         _time = 0.0f;
     }
 
