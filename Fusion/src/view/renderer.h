@@ -10,6 +10,7 @@
 #include "view_window.h"
 #include "vbuffer.h"
 #include "shader.h"
+#include "texture.h"
 
 class renderer
 {
@@ -49,6 +50,10 @@ public:
         return _shadow_map;
     }
 
+    std::shared_ptr<vbuffer> mesh() {
+        return _mesh;
+    }
+
 private:
     void init_shadows();
 
@@ -63,11 +68,18 @@ private:
     std::shared_ptr<shader> _shader;
     std::shared_ptr<shader> _point_shader;
     std::shared_ptr<shader> _shadow_shader;
+
     std::shared_ptr<vbuffer> _points;
     std::shared_ptr<vbuffer> _plane;
     std::shared_ptr<vbuffer> _mesh;
 
+    std::shared_ptr<shader> _xxx_shader;
+    std::shared_ptr<vbuffer> _xxx_mesh;
+    std::shared_ptr<texture<>> _xxx_tex;
+
     const view_window& _window;
+
+    float _t = 0;
 };
 
 #endif // RENDERER_H

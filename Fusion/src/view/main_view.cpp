@@ -47,8 +47,10 @@ void main_view::update(float dt)
 {
     _time += dt;
 
-    if(_time > 2.0f && _renderer.upload_points(_window->sensors_data())) {
-        _time = 0.0f;
+    if(_time > 2.0f) {
+        if(_window->sensors_data().pause || _renderer.upload_points(_window->sensors_data())) {
+            _time = 0.0f;
+        }
     }
 
     if(glfwGetKey(_window->glfw_window(), GLFW_KEY_W) == GLFW_PRESS) {
@@ -125,6 +127,8 @@ void main_view::draw()
                            "e - ground plane\n"
                            "---------------------------\n"
                            "c - dump\n"
+                           "f - load\n"
+                           "y - dump obj\n"
                            "k - nuke\n"
                            "---------------------------\n"
                            "v - build mesh (greedy)\n"
@@ -160,7 +164,7 @@ void main_view::on_mouse(float x, float y)
         float dx = x - _mouse.x;
         float dy = y - _mouse.y;
 
-        _angle_v += dy * 0.01;
+        _angle_v = std::min<float>(std::max<float>(glm::radians(-85.0f), _angle_v + dy * 0.01f), glm::radians(85.f));
         _angle_h -= dx * 0.01;
 
         glm::vec3 dir_axis(0.0f, 1.0f, 0.0f);
@@ -193,21 +197,31 @@ void main_view::on_key(int k, bool r)
         _light ^= true;
     }
     else if(k == GLFW_KEY_C && r) {
-        std::ofstream fs;
-        fs.open("points.txt");
         auto& cld = _window->sensors_data().cloud();
         cld.mutex().lock();
-        for(const point_t& p : cld.value().points()) {
-            fs << std::fixed << p.x << "," << p.y << "," << p.z << std::endl;
-        }
+        int size = cld.value().points().size();
+        cld.value().save("points.txt");
         cld.mutex().unlock();
-        std::cout << "Point cloud was dumped to points.txt" << std::endl;
+        std::cout << "Dumped " << size << " points to points.txt" << std::endl;
+    }
+    else if(k == GLFW_KEY_Y && r) {
+        _renderer.mesh()->save("surface.obj", 7);
+        std::cout << "Obj dumped to surface.obj" << std::endl;
     }
     else if(k == GLFW_KEY_K && r) {
         auto& cld = _window->sensors_data().cloud();
         std::lock_guard<std::mutex> lock(cld.mutex());
         cld.value().clear();
         _renderer.clear_points();
+    }
+    else if(k == GLFW_KEY_F && r) {
+        _window->sensors_data().pause = true;
+        auto& cld = _window->sensors_data().cloud();
+        cld.mutex().lock();
+        cld.value().load("points.txt");
+        int size = cld.value().points().size();
+        cld.mutex().unlock();
+        std::cout << "Loaded " << size << " points from points.txt" << std::endl;
     }
     else if(k == GLFW_KEY_P && r) {
         _window->sensors_data().pause ^= true;

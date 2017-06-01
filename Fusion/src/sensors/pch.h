@@ -22,8 +22,12 @@
 #include <pcl/point_types.h>
 #include <pcl/surface/gp3.h>
 #include <pcl/surface/grid_projection.h>
+#include <pcl/surface/marching_cubes_rbf.h>
 #include <pcl/point_cloud.h>
 #include <pcl/features/normal_3d.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/filters/radius_outlier_removal.h>
 
+#include "config.h"
 
 #endif // PCH_H

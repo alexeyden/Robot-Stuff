@@ -32,6 +32,8 @@ public:
     }
 
     void clear();
+    void load(const char* p);
+    void save(const char* p);
 
     typedef pcl::PointCloud<point_t> pcloud_t;
     typedef pcl::octree::OctreePointCloudSearch<point_t> tree_t;
@@ -44,7 +46,7 @@ public:
         return _tree;
     }
 private:
-    static constexpr float _eps = 0.2f;
+    static constexpr float _eps = 0.1f;
     static constexpr float _bop = 0.01f;
 
     uint32_t get_dir(const glm::vec3& src, const glm::vec3 &dst, uint32_t subxy, uint32_t subz);

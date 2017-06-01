@@ -1,0 +1,29 @@
+{
+    "mesh": {
+        "filter": {
+            "radius": 1.0,
+            "min_nb": 3
+        },
+        "cluster": {
+            "tol": 0.3,
+            "min_points": 10,
+            "max_points": 100000
+        },
+        "normals": {
+            "radius": 0.5
+        },
+        "surface": {
+            "greedy": {
+                "radius": 1.0,
+                "mu": 2.5,
+                "nbors": 100
+            },
+            "mcubes": {
+                "iso": 0.0,
+                "displ": 0.01,
+                "res": 50,
+                "extend": 0
+            }
+        }
+    }
+}

@@ -6,7 +6,7 @@ vrep_client::vrep_client() :
     _conn_id(-1),
     _lcam_id(-1), _rcam_id(-1),
     _lidar_cam_id(-1),
-    _usonic_id {-1, -1, -1}
+    _usonic_id {-1, -1, -1, -1}
 {
 }
 
@@ -28,6 +28,7 @@ bool vrep_client::connect(simxInt port)
         simxGetObjectHandle(id, "Sonic1", &_usonic_id[0], simx_opmode_blocking);
         simxGetObjectHandle(id, "Sonic2", &_usonic_id[1], simx_opmode_blocking);
         simxGetObjectHandle(id, "Sonic3", &_usonic_id[2], simx_opmode_blocking);
+        simxGetObjectHandle(id, "Sonic4", &_usonic_id[3], simx_opmode_blocking);
     }
 
     _conn_id = id;
@@ -71,10 +72,10 @@ bool vrep_client::update_usonic(usonic_msr_t* msr)
             float dist = glm::length(glm::vec3(point[0], point[1], point[2]));
 
             if(state == 0)
-                dist = 4.0f;
+                dist = 3.0f;
 
             msr[i].pos0 = ps;
-            msr[i].pos1 = rot * glm::vec4(0.0f, 0.00f, 1.0f, 1.0f) * dist + ps;
+            msr[i].pos1 = rot * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) * dist + ps;
             msr[i].maxed = state == 0;
         }
 

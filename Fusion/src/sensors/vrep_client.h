@@ -36,7 +36,7 @@ public:
     typedef image_msr_t<float, 64, 64> image_msr_laser_t;
     typedef image_msr_t<uint8_t, 128, 128> image_msr_scam_t;
 
-    static constexpr size_t USONIC_NUM = 3;
+    static constexpr size_t USONIC_NUM = 4;
 
 public:
     vrep_client();

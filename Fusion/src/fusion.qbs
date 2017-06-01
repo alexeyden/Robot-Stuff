@@ -52,6 +52,8 @@ Project {
         }
 
         files: [
+            "sensors/config.cpp",
+            "sensors/config.h",
             "sensors/crbuffer.h",
             "sensors/extApi.cpp",
             "sensors/extApi.h",
@@ -87,6 +89,9 @@ Project {
         files: [
             "view/3d_shader.frag",
             "view/3d_shader.vert",
+            "view/3d_shader_tex.frag",
+            "view/3d_shader_tex.vert",
+            "view/light.glsl",
             "view/main_view.cpp",
             "view/main_view.h",
             "view/point_shader.frag",

@@ -37,7 +37,7 @@ void sensors::start()
                 self->_client.update_scam(self->_scam_img._value[0], self->_scam_img._value[1]);
                 self->_scam_img.mutex().unlock();
 
-                usonic_msr_t msr[3];
+                usonic_msr_t msr[vrep_client::USONIC_NUM];
                 new_usonic = self->_client.update_usonic(msr);
 
                 if((new_usonic || new_laser) && !self->pause) {
@@ -45,7 +45,7 @@ void sensors::start()
                     if(new_laser)
                         self->process_laser(self->_laser_img._value);
                     if(new_usonic)
-                        for(size_t i = 0; i < 3; i++)
+                        for(size_t i = 0; i < vrep_client::USONIC_NUM; i++)
                             self->process_usonic(msr[i]);
                     self->_cloud.mutex().unlock();
                 }

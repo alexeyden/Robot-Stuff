@@ -1,5 +1,7 @@
 #include "point_cloud.h"
 
+#include <fstream>
+
 point_cloud::point_cloud()
 {
     _cloud = boost::shared_ptr<pcloud_t>(new pcloud_t());
@@ -40,24 +42,40 @@ void point_cloud::add_usonic(const glm::vec3 &psensor, const glm::vec3 &p, float
     if(blackout)
         return;
 
-    const int suba = 10;
-    const int subb = 18;
+    const int suba = 20;
+    const int subb = 20;
+    const float da = angle/2.0f/suba;
+    const float db = glm::radians(360.0f)/subb;
 
-    for(float a = angle; a > 0; a -= angle/suba) {
+    std::vector<int> indices;
+    std::vector<float> distances;
+
+    // TODO: proper cone vs plane intersection
+    for(float a = angle/2.0f; a > 0; a -= da) {
         glm::mat4 r = glm::rotate(glm::mat4(), a, glm::normalize(glm::cross(dr, glm::vec3(-dr[1], dr[2], dr[0]))));
-        for(float s = 0; s < glm::radians(360.0f); s += glm::radians(360.0f/subb)) {
-            glm::vec4 p = glm::rotate(glm::mat4(), s, dr) * r * glm::vec4(dr, 1.0f);
+        for(float s = 0; s < glm::radians(360.0f); s += db) {
+            glm::vec4 pp = glm::rotate(glm::mat4(), s, dr) * r * glm::vec4(dr, 1.0f);
 
             point_t point;
-            point.x = p.x * d + psensor.x;
-            point.y = p.y * d + psensor.y;
-            point.z = p.z * d + psensor.z;
+            point.z = pp.z * d + psensor.z;
 
-            std::vector<int> indices;
-            std::vector<float> distances;
+            if(point.z < 0.45f)
+                return;
+        }
+    }
 
-            const float S = 2 * glm::pi<float>() * d * d * (1.0f - std::cos(angle/2.0f));
-            const float k = 1.0f/S;
+    for(float a = angle/2.0f; a > 0; a -= da) {
+        glm::mat4 r = glm::rotate(glm::mat4(), a, glm::normalize(glm::cross(dr, glm::vec3(-dr[1], dr[2], dr[0]))));
+        for(float s = 0; s < glm::radians(360.0f); s += db) {
+            glm::vec4 pp = glm::rotate(glm::mat4(), s, dr) * r * glm::vec4(dr, 1.0f);
+
+            point_t point;
+            point.x = pp.x * d + psensor.x;
+            point.y = pp.y * d + psensor.y;
+            point.z = pp.z * d + psensor.z;
+
+            const float S = 2.0f * glm::pi<float>() * d * d * (1.0f - std::cos(angle/2.0f));
+            const float k = std::max(0.5f, 1.0f/S);
 
             if(_tree->radiusSearch(point, _eps, indices, distances) > 0) {
                 for(int ind : indices) {
@@ -67,7 +85,7 @@ void point_cloud::add_usonic(const glm::vec3 &psensor, const glm::vec3 &p, float
                 point.p = 0.5f;
                 std::fill(point.pd, point.pd + point.SUB_N, 1.0f - std::pow(0.5, 1.0/float(point.SUB_N)));
 
-                update_point(point, psensor, 1.0f);
+                update_point(point, psensor, k);
 
                 _tree->addPointToCloud(point, _cloud);
             }
@@ -79,6 +97,37 @@ void point_cloud::clear()
 {
     _cloud->clear();
     _tree->deleteTree();
+}
+
+void point_cloud::load(const char *path)
+{
+    clear();
+    std::ifstream fs(path);
+
+    point_t p;
+    while(!fs.eof()) {
+        fs >> p.x >> p.y >> p.z >> p.p;
+
+        for(int i = 0; i < point_t::SUB_N; i++)
+            fs >> p.pd[i];
+
+        if(!fs.eof()) {
+            _tree->addPointToCloud(p, _cloud);
+        }
+    }
+}
+
+void point_cloud::save(const char *p)
+{
+    std::ofstream fs(p);
+    for(const point_t& p : _cloud->points) {
+        fs << p.x << " " << p.y << " " << p.z << " " << p.p;
+
+        for(int i = 0; i < point_t::SUB_N; i++)
+            fs << " " << p.pd[i];
+
+        fs << std::endl;
+    }
 }
 
 uint32_t point_cloud::get_dir(const glm::vec3& src, const glm::vec3& dst, uint32_t subxy, uint32_t subz)

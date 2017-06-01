@@ -11,6 +11,14 @@ const char* SHADER_3D_VS =
 #include "3d_shader.vert"
 ;
 
+const char* SHADER_3D_TEX_FS =
+#include "3d_shader_tex.frag"
+;
+
+const char* SHADER_3D_TEX_VS =
+#include "3d_shader_tex.vert"
+;
+
 const char* SHADER_3D_FS =
 #include "3d_shader.frag"
 ;

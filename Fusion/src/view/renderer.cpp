@@ -6,6 +6,7 @@
 
 static const char* vert_shadow_src = "#version 150\n"
                                      "in vec3 position;"
+                                     "in vec2 uv;"
                                      "in vec3 norm;"
                                      "uniform mat4 proj;"
                                      "void main() {"
@@ -20,6 +21,8 @@ static const char* frag_dummy_src = "#version 150\n"
 
 extern const char* SHADER_3D_FS;
 extern const char* SHADER_3D_VS;
+extern const char* SHADER_3D_TEX_FS;
+extern const char* SHADER_3D_TEX_VS;
 extern const char* SHADER_CLOUD_FS;
 extern const char* SHADER_CLOUD_VS;
 
@@ -29,27 +32,41 @@ renderer::renderer(const view_window &window) :
     _shader = std::shared_ptr<shader>(new shader(SHADER_3D_FS, SHADER_3D_VS));
     _point_shader = std::shared_ptr<shader>(new shader(SHADER_CLOUD_FS, SHADER_CLOUD_VS));
     _shadow_shader = std::shared_ptr<shader>(new shader(frag_dummy_src, vert_shadow_src));
+    _xxx_shader = std::shared_ptr<shader> { new shader(SHADER_3D_TEX_FS, SHADER_3D_TEX_VS) };
 
     view = glm::mat4();
     _proj = glm::perspective(glm::radians(45.0f), _window.width() / (float) _window.height(), 0.1f, 100.0f);
 
     float plane[] = {
-        -50.0f,  50.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -50.0f, -50.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         50.0f,  50.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         50.0f, -50.0f, 0.0f, 0.0f, 0.0f, 1.0f
+        -50.0f,  50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -50.0f, -50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         50.0f,  50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         50.0f, -50.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
     };
 
     _shader->bind();
-    _plane = std::shared_ptr<vbuffer>(new vbuffer(plane, 4 * 6, GL_TRIANGLE_STRIP));
-    _plane->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 6);
-    _plane->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 6);
+    _plane = std::shared_ptr<vbuffer>(new vbuffer(plane, 4 * 7, GL_TRIANGLE_STRIP));
+    _plane->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 7);
+    _plane->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 7);
+    _plane->setup_attrib(_shader->get_attrib_location("cluster"), 1, 6, 7);
     _plane->unbind();
 
     _mesh = std::shared_ptr<vbuffer>(new vbuffer(nullptr, 0, GL_TRIANGLES));
-    _mesh->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 6);
-    _mesh->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 6);
+    _mesh->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 7);
+    _mesh->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 7);
+    _mesh->setup_attrib(_shader->get_attrib_location("cluster"), 1, 6, 7);
     _mesh->unbind();
+
+    _xxx_shader->bind();
+    _xxx_mesh = vbuffer::from_obj("data/xxx.obj");
+    _xxx_mesh->setup_attrib(_xxx_shader->get_attrib_location("position"), 3, 0, 8);
+    _xxx_mesh->setup_attrib(_xxx_shader->get_attrib_location("uv"), 2, 3, 8);
+    _xxx_mesh->setup_attrib(_xxx_shader->get_attrib_location("norm"), 3, 5, 8);
+    _xxx_mesh->unbind();
+
+    image<>* img = image<>::load("data/xxx.png");
+    _xxx_tex = std::shared_ptr<texture<>> { texture<>::from_image(img) };
+    delete img;
 
     init_shadows();
 
@@ -71,7 +88,7 @@ renderer::renderer(const view_window &window) :
 
 void renderer::update(float dt)
 {
-    (void) dt;
+    _t += dt;
 }
 
 void renderer::render()
@@ -116,14 +133,14 @@ void renderer::render()
     }
 
     if(ground_plane) {
+        _shader->uniform2f("sv", glm::vec2(0.0f, 1.0f));
         _plane->bind();
-        _shader->uniform3f("color", glm::vec3(0.61f, 0.67f, 0.80f));
         _plane->draw(0, 4);
         _plane->unbind();
     }
 
     if(!points_mode) {
-        _shader->uniform3f("color", glm::vec3(1.0f, 1.0f, 1.0f));
+        _shader->uniform2f("sv", glm::vec2(0.7f, 1.0f));
         _mesh->bind();
         _mesh->draw(0, _verts_n);
     }
@@ -137,7 +154,36 @@ void renderer::render()
         _points->draw(0, _points_n);
         _points->unbind();
     }
+/*
+    _xxx_shader->bind();
+    _xxx_shader->uniform_mat4("proj", _proj);
+    _xxx_shader->uniform_mat4("model", view);
+    _xxx_shader->uniform3f("eye", eye);
+    _xxx_shader->uniform1i("light", light);
+    _xxx_shader->uniform3f("light_dir", light_target - light_pos);
+    _xxx_shader->uniform1i("shadow", use_shadow);
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, _xxx_tex->id());
+    _xxx_shader->uniform1i("tex", 1);
+
+    if(use_shadow) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _shadow_map);
+        _xxx_shader->uniform1i("map", 0);
+        _xxx_shader->uniform_mat4("light_model", model);
+    }
+
+    _xxx_mesh->bind();
+    for(const xxx::xxxp& xp : _xxx.xxxps()) {
+        _xxx_shader->uniform_mat4("model", view * xp.model);
+        _xxx_mesh->draw();
+    }
+    */
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -176,7 +222,7 @@ bool renderer::upload_points(sensors& fetcher)
 
 void renderer::upload_mesh(const std::vector<float> &data)
 {
-    _verts_n = data.size() / 6;
+    _verts_n = data.size() / 7;
 
     _mesh->bind();
     _mesh->update(data.data(), data.size());
