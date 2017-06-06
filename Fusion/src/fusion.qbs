@@ -5,6 +5,69 @@ Project {
     name: "fusion"
     minimumQbsVersion: "1.6"
 
+    StaticLibrary {
+        name: "ffld"
+
+        Depends { name: "cpp" }
+
+        cpp.includePaths: [ "ffld/" ]
+        cpp.cxxLanguageVersion: "c++11"
+
+        cpp.systemIncludePaths: [
+            "/usr/include/libxml2/",
+            "/usr/include/openjpeg-2.1/",
+            "/usr/include/eigen3/"
+        ]
+        cpp.cxxFlags: [
+            "-fopenmp"
+        ]
+
+        Export {
+            Depends { name: "cpp" }
+
+            cpp.systemIncludePaths: [
+                "/usr/include/libxml2/",
+                "/usr/include/openjpeg-2.1/",
+                "/usr/include/eigen3/"
+            ]
+            cpp.dynamicLibraries: [
+                "xml2",
+                "jpeg",
+                "fftw3f",
+                "gomp"
+            ]
+            cpp.cxxFlags: [
+                "-fopenmp"
+            ]
+        }
+
+        // TODO: some of these ain't needed
+        files: [
+            "ffld/HOGPyramid.h",
+            "ffld/Intersector.h",
+            "ffld/JPEGImage.h",
+            "ffld/LBFGS.h",
+            "ffld/Mixture.h",
+            "ffld/Model.h",
+            "ffld/Object.h",
+            "ffld/Patchwork.h",
+            "ffld/Rectangle.h",
+            "ffld/Scene.h",
+            "ffld/SimpleOpt.h",
+            "ffld/Detector.hpp",
+            "ffld/HOGPyramid.cpp",
+            "ffld/JPEGImage.cpp",
+            "ffld/LBFGS.cpp",
+            "ffld/Mixture.cpp",
+            "ffld/Model.cpp",
+            "ffld/Object.cpp",
+            "ffld/Patchwork.cpp",
+            "ffld/Rectangle.cpp",
+            "ffld/Scene.cpp",
+            "ffld/Detector.cpp"
+        ]
+    }
+
     Product {
         name: "pcl"
         Export {
@@ -29,18 +92,21 @@ Project {
 
         Depends { name: "cpp" }
         Depends { name: "pcl" }
+        Depends { name: "ffld" }
 
         cpp.defines: [
             "NON_MATLAB_PARSING",
-            "MAX_EXT_API_CONNECTIONS=255"
+            "MAX_EXT_API_CONNECTIONS=255",
+            "USE_ALSO_SHARED_MEMORY"
         ]
 
         cpp.cxxLanguageVersion: "c++14"
         cpp.useCxxPrecompiledHeader: true
-        cpp.includePaths: [ "sensors/" ]
+        cpp.includePaths: [ "sensors/", "." ]
 
         Export {
             Depends { name: "pcl" }
+            Depends { name: "ffld" }
             Depends { name: "cpp" }
             cpp.dynamicLibraries: [ "pthread" ]
         }
@@ -124,7 +190,6 @@ Project {
 
         cpp.includePaths: [ "." ]
         cpp.cxxLanguageVersion: "c++14"
-
         files: [ "main.cpp" ]
     }
 }

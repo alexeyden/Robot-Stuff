@@ -9,13 +9,14 @@ extern template class pcl::PointCloud<pcl::PointNormal>;
 extern template class pcl::search::KdTree<pcl::PointNormal>;
 extern template class pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal>;
 extern template class pcl::GreedyProjectionTriangulation<pcl::PointNormal>;
+extern template class pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>;
 
 class mesh_builder {
 public:
     enum class method {
         GREEDY,
         POISSON,
-        GRID_PROJ
+        MCUBES
     };
 
     mesh_builder() {}

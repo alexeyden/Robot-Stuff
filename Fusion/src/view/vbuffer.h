@@ -5,6 +5,7 @@
 
 #include <memory>
 
+//video buffer
 class vbuffer
 {
 public:
@@ -32,6 +33,7 @@ public:
     }
 
 
+    // dump as obj (vertices only)
     bool save(const char* p, size_t vsize);
     static std::shared_ptr<vbuffer> from_obj(const char* p);
 

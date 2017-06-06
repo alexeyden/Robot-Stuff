@@ -1,10 +1,6 @@
 #include "mesh.h"
 
-#include <pcl/surface/mls.h>
-#include <pcl/surface/marching_cubes_hoppe.h>
 #include <pcl/surface/poisson.h>
-
-extern template class pcl::MarchingCubesRBF<pcl::PointNormal>;
 
 bool mesh_builder::build(sensors::cloud_res_t &cloud_res, method m)
 {
@@ -90,7 +86,6 @@ bool mesh_builder::build(sensors::cloud_res_t &cloud_res, method m)
             mls.setSearchRadius (config::get<float>("mesh.normals.radius"));
             mls.process(*cloud_with_normals);
 
-
             pcl::search::KdTree<pcl::PointNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointNormal>);
             tree2->setInputCloud (cloud_with_normals);
 
@@ -102,7 +97,7 @@ bool mesh_builder::build(sensors::cloud_res_t &cloud_res, method m)
                 polygons = greedy_triang(cloud_with_normals, tree2);
             else if(m == method::POISSON)
                 polygons = poisson_triang(cloud_with_normals, tree2);
-            else if(m == method::GRID_PROJ)
+            else if(m == method::MCUBES)
                 polygons = marching_cubes_triang(cloud_with_normals, tree2);
             std::cerr << "Mesh builder: done" << std::endl;
 
@@ -187,7 +182,7 @@ mesh_builder::triang_result mesh_builder::marching_cubes_triang(
         pcl::PointCloud<pcl::PointNormal>::Ptr cloud,
         pcl::search::KdTree<pcl::PointNormal>::Ptr tree)
 {
-    std::cerr << "Mesh builder: grid proj..." << std::endl;
+    std::cerr << "Mesh builder: marching cubes..." << std::endl;
 
     std::vector<pcl::Vertices> polygons;
 

@@ -49,6 +49,7 @@ void main_view::update(float dt)
 
     if(_time > 2.0f) {
         if(_window->sensors_data().pause || _renderer.upload_points(_window->sensors_data())) {
+            _renderer.update_objects(_window->sensors_data());
             _time = 0.0f;
         }
     }
@@ -99,6 +100,7 @@ void main_view::draw()
                         "---------------------------\n"
                         "pts_n = %lu\n"
                         "trg_n = %lu\n"
+                        "obj_n = %lu\n"
                         "---------------------------\n"
                         "thresh = %.1f\n"
                         "---------------------------\n"
@@ -110,6 +112,7 @@ void main_view::draw()
              _window->fps(),
              _renderer.points_count(),
              _renderer.vertex_count() / 3,
+             _renderer.objects_count(),
              _renderer.thresh,
              mesh_job,
              _window->sensors_data().pause);
@@ -133,7 +136,7 @@ void main_view::draw()
                            "---------------------------\n"
                            "v - build mesh (greedy)\n"
                            "b - build mesh (poisson)\n"
-                           "n - build mesh (grid proj)\n"
+                           "n - build mesh (mcubes)\n"
                            "---------------------------\n"
                            "t - p thr. cut off\n"
                            "---------------------------\n"
@@ -240,7 +243,7 @@ void main_view::on_key(int k, bool r)
     }
     else if(k == GLFW_KEY_N && r) {
         _mesh_builder.loc = _pos;
-        _mesh_builder.build(_window->sensors_data().cloud(), mesh_builder::method::GRID_PROJ);
+        _mesh_builder.build(_window->sensors_data().cloud(), mesh_builder::method::MCUBES);
     }
     else if(k == GLFW_KEY_E && r) {
         _renderer.ground_plane ^= true;

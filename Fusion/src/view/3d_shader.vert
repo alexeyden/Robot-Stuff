@@ -8,12 +8,12 @@ in float cluster;
 out vec3 v_norm;
 out vec3 v_pos;
 out vec4 v_light_pos;
-out vec3 v_color;
+out vec4 v_color;
 
 uniform mat4 proj;
 uniform mat4 model;
 uniform mat4 light_model;
-uniform vec2 sv;
+uniform vec3 sva;
 
 vec3 hsv2rgb(vec3 c)
 {
@@ -25,7 +25,7 @@ vec3 hsv2rgb(vec3 c)
 void main() {
     v_norm = norm;
     v_pos = position;
-    v_color = hsv2rgb(vec3(cluster, sv.x, sv.y));
+    v_color = vec4(hsv2rgb(vec3(cluster, sva.x, sva.y)), sva.z);
     v_light_pos = light_model * vec4(position, 1.0);
     gl_Position = proj * model * vec4(position, 1.0);
 }

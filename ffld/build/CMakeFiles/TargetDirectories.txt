@@ -1,5 +1,0 @@
-/home/rtgbnm/Devel/Code/Active/Robot-Stuff/ExpertSystem/ffld/build/CMakeFiles/train.dir
-/home/rtgbnm/Devel/Code/Active/Robot-Stuff/ExpertSystem/ffld/build/CMakeFiles/detect.dir
-/home/rtgbnm/Devel/Code/Active/Robot-Stuff/ExpertSystem/ffld/build/CMakeFiles/rebuild_cache.dir
-/home/rtgbnm/Devel/Code/Active/Robot-Stuff/ExpertSystem/ffld/build/CMakeFiles/ffld_detector.dir
-/home/rtgbnm/Devel/Code/Active/Robot-Stuff/ExpertSystem/ffld/build/CMakeFiles/edit_cache.dir

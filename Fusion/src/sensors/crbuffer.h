@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iterator>
 
+// circular buffer
 template<typename T, size_t buf_size>
 class crbuffer {
 public:

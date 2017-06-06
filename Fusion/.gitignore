@@ -1,3 +1,5 @@
 /build-*
+/src/wisdom.fftw
 /sim_data/points.txt
 /src/points.txt
+/src/ffld/build

@@ -24,6 +24,10 @@ struct image_msr_t {
             delete [] buf;
     }
 
+    void set_pixel(size_t x, size_t y, T value) {
+        buf[x + y * WIDTH] = value;
+    }
+
     T* buf;
     glm::vec3 dir;
     glm::vec3 up;
@@ -34,7 +38,7 @@ class vrep_client
 {
 public:
     typedef image_msr_t<float, 64, 64> image_msr_laser_t;
-    typedef image_msr_t<uint8_t, 128, 128> image_msr_scam_t;
+    typedef image_msr_t<uint8_t, 256, 256> image_msr_scam_t;
 
     static constexpr size_t USONIC_NUM = 4;
 

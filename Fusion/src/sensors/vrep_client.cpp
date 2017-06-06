@@ -17,7 +17,7 @@ vrep_client::~vrep_client()
 
 bool vrep_client::connect(simxInt port)
 {
-    int id = simxStart("127.0.0.1", port, 0, 1, 1000, 5);
+    int id = simxStart("127.0.0.1", port, 1, 1, 1000, 5);
 
     if(id >= 0) {
         simxGetObjectHandle(id, "CameraL", &_lcam_id, simx_opmode_blocking);
@@ -139,8 +139,8 @@ bool vrep_client::update_scam(vrep_client::image_msr_scam_t &lmsr, vrep_client::
         glm::mat4 rot = glm::rotate(glm::mat4(1.0f), angles[0], glm::vec3(1.0f, 0.0f, 0.0f)) *
             glm::rotate(glm::mat4(1.0f), angles[1], glm::vec3(0.0f, 1.0f, 0.0f)) *
             glm::rotate(glm::mat4(1.0f), angles[2], glm::vec3(0.0f, 0.0f, 1.0f));
-        auto dir = rot * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-        auto up = rot * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        auto dir = rot * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        auto up = rot * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
         lmsr.dir = dir;
         lmsr.up = up;

@@ -1,9 +1,9 @@
 #include "pch.h"
 
-#include <pcl/surface/marching_cubes_rbf.h>
+//force instantiation to cut down build times
 
 template class pcl::PointCloud<pcl::PointNormal>;
 template class pcl::search::KdTree<pcl::PointNormal>;
-template class pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal>;
+template class pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>;
 template class pcl::GreedyProjectionTriangulation<pcl::PointNormal>;
-template class pcl::MarchingCubesRBF<pcl::PointNormal>;
+template class pcl::MarchingCubesHoppe<pcl::PointNormal>;

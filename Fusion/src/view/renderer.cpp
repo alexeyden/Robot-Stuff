@@ -32,7 +32,6 @@ renderer::renderer(const view_window &window) :
     _shader = std::shared_ptr<shader>(new shader(SHADER_3D_FS, SHADER_3D_VS));
     _point_shader = std::shared_ptr<shader>(new shader(SHADER_CLOUD_FS, SHADER_CLOUD_VS));
     _shadow_shader = std::shared_ptr<shader>(new shader(frag_dummy_src, vert_shadow_src));
-    _xxx_shader = std::shared_ptr<shader> { new shader(SHADER_3D_TEX_FS, SHADER_3D_TEX_VS) };
 
     view = glm::mat4();
     _proj = glm::perspective(glm::radians(45.0f), _window.width() / (float) _window.height(), 0.1f, 100.0f);
@@ -57,16 +56,61 @@ renderer::renderer(const view_window &window) :
     _mesh->setup_attrib(_shader->get_attrib_location("cluster"), 1, 6, 7);
     _mesh->unbind();
 
-    _xxx_shader->bind();
-    _xxx_mesh = vbuffer::from_obj("data/xxx.obj");
-    _xxx_mesh->setup_attrib(_xxx_shader->get_attrib_location("position"), 3, 0, 8);
-    _xxx_mesh->setup_attrib(_xxx_shader->get_attrib_location("uv"), 2, 3, 8);
-    _xxx_mesh->setup_attrib(_xxx_shader->get_attrib_location("norm"), 3, 5, 8);
-    _xxx_mesh->unbind();
+    float cube[] = {
+        //bottom
+         0.0f,  1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.8f,
+         0.0f,  0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.8f,
+         1.0f,  1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.8f,
+         0.0f,  0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.8f,
+         1.0f,  1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.8f,
+         1.0f,  0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.8f,
 
-    image<>* img = image<>::load("data/xxx.png");
-    _xxx_tex = std::shared_ptr<texture<>> { texture<>::from_image(img) };
-    delete img;
+        //top
+         0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.8f,
+         0.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.8f,
+         1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.8f,
+         0.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.8f,
+         1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.8f,
+         1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.8f,
+
+        //left
+        0.0f,  1.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.8f,
+        0.0f,  0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.8f,
+        0.0f,  1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.8f,
+        0.0f,  0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.8f,
+        0.0f,  1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.8f,
+        0.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.8f,
+
+        //right
+        1.0f,  1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.8f,
+        1.0f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.8f,
+        1.0f,  1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.8f,
+        1.0f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.8f,
+        1.0f,  1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.8f,
+        1.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.8f,
+
+        //front
+         0.0f, 1.0f,  1.0f, 0.0f, -1.0f, 0.0f, 0.8f,
+         0.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.8f,
+         1.0f, 1.0f,  1.0f, 0.0f, -1.0f, 0.0f, 0.8f,
+         0.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.8f,
+         1.0f, 1.0f,  1.0f, 0.0f, -1.0f, 0.0f, 0.8f,
+         1.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.8f,
+
+        //back
+         0.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.8f,
+         0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.8f,
+         1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.8f,
+         0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.8f,
+         1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.8f,
+         1.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.8f
+    };
+
+    _obj_mesh = std::shared_ptr<vbuffer>(new vbuffer(cube, sizeof(cube)/sizeof(float), GL_TRIANGLES));
+    _obj_mesh->setup_attrib(_shader->get_attrib_location("position"), 3, 0, 7);
+    _obj_mesh->setup_attrib(_shader->get_attrib_location("norm"), 3, 3, 7);
+    _obj_mesh->setup_attrib(_shader->get_attrib_location("cluster"), 1, 6, 7);
+    _obj_mesh->unbind();
 
     init_shadows();
 
@@ -133,14 +177,21 @@ void renderer::render()
     }
 
     if(ground_plane) {
-        _shader->uniform2f("sv", glm::vec2(0.0f, 1.0f));
+        _shader->uniform3f("sva", glm::vec3(0.0f, 1.0f, 1.0f));
         _plane->bind();
         _plane->draw(0, 4);
         _plane->unbind();
     }
 
+    _obj_mesh->bind();
+    _shader->uniform3f("sva", glm::vec3(0.9f, 1.0f, 1.0f));
+    for(const glm::mat4& o : _objects) {
+        _shader->uniform_mat4("model", view * o);
+        _obj_mesh->draw(0, 6 * 6);
+    }
+
     if(!points_mode) {
-        _shader->uniform2f("sv", glm::vec2(0.7f, 1.0f));
+        _shader->uniform3f("sva", glm::vec3(0.7f, 1.0f, 1.0f));
         _mesh->bind();
         _mesh->draw(0, _verts_n);
     }
@@ -154,6 +205,7 @@ void renderer::render()
         _points->draw(0, _points_n);
         _points->unbind();
     }
+
 /*
     _xxx_shader->bind();
     _xxx_shader->uniform_mat4("proj", _proj);
@@ -226,6 +278,21 @@ void renderer::upload_mesh(const std::vector<float> &data)
 
     _mesh->bind();
     _mesh->update(data.data(), data.size());
+}
+
+void renderer::update_objects(sensors &sensors)
+{
+    sensors.objects().mutex().lock();
+    _objects.clear();
+    for(const scam_object& o : sensors.objects().value()) {
+        glm::mat4 m =
+                glm::translate(glm::mat4(), o.pos) *
+                glm::rotate(glm::mat4(), std::atan2(o.dir.y, o.dir.x), glm::vec3(0, 0, 1)) *
+                glm::scale(glm::mat4(), o.size) *
+                glm::translate(glm::mat4(), glm::vec3(-0.5f, -0.5f, -0.5f));
+        _objects.push_back(m);
+    }
+    sensors.objects().mutex().unlock();
 }
 
 void renderer::clear_points()

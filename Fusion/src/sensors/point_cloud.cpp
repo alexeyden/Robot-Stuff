@@ -132,6 +132,8 @@ void point_cloud::save(const char *p)
 
 uint32_t point_cloud::get_dir(const glm::vec3& src, const glm::vec3& dst, uint32_t subxy, uint32_t subz)
 {
+    // get direction index in lat/long subdivision
+
     glm::vec3 dir = glm::normalize(dst - src);
     uint32_t xyi = std::min<uint32_t>((std::atan2(dir.y, dir.x) + glm::pi<float>())
                                       / (glm::pi<float>() * 2) * subxy, subxy - 1);

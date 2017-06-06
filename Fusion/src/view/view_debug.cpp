@@ -75,7 +75,7 @@ void view_debug::draw()
     _2d_shader->uniform3f("color", glm::vec3(1.0f, 1.0f, 1.0f));
 
     _quad_buf->bind();
-    glm::mat4 scaled = glm::scale(glm::mat4(1.0f), glm::vec3(200.0f, 200.0f, 0.0f));
+    glm::mat4 scaled = glm::scale(glm::mat4(1.0f), glm::vec3(256.0f, 256.0f, 0.0f));
     glm::mat4 ident = glm::mat4(1.0f);
 
     _2d_shader->uniform1i("tex", 0);
@@ -85,21 +85,21 @@ void view_debug::draw()
     _quad_buf->draw(0, 4);
 
     _cam_left_tex->bind();
-    _2d_shader->uniform_mat4("model", glm::translate(ident, glm::vec3(200, 250, 0)) * scaled);
+    _2d_shader->uniform_mat4("model", glm::translate(ident, glm::vec3(200, 320, 0)) * scaled);
     _quad_buf->draw(0, 4);
 
     _cam_right_tex->bind();
-    _2d_shader->uniform_mat4("model", glm::translate(ident, glm::vec3(410, 250, 0)) * scaled);
+    _2d_shader->uniform_mat4("model", glm::translate(ident, glm::vec3(200 + 256 + 20, 320, 0)) * scaled);
     _quad_buf->draw(0, 4);
 
     snprintf((char*) text_buf, 511, "Lidar depth (%lu x %lu):", _lidar_tex->width(), _lidar_tex->height());
     _font->draw(text_buf, 200, 10);
 
     snprintf((char*) text_buf, 511, "Cam left (%lu x %lu):", _cam_left_tex->width(), _cam_left_tex->height());
-    _font->draw(text_buf, 200, 240);
+    _font->draw(text_buf, 200, 310);
 
     snprintf((char*) text_buf, 511, "Cam right (%lu x %lu):", _cam_right_tex->width(), _cam_right_tex->height());
-    _font->draw(text_buf, 410, 240);
+    _font->draw(text_buf, 200 + 256 + 20, 310);
 
     const char* connected = _window->sensors_data().client().is_connected() ? "connected" : "disconnected";
     snprintf((char*) text_buf, 511, "RAW\n"

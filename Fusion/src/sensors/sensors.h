@@ -3,9 +3,22 @@
 
 #include "pch.h"
 
+#include "ffld/Detector.hpp"
+
 #include "crbuffer.h"
 #include "vrep_client.h"
 #include "point_cloud.h"
+
+struct scam_object {
+    glm::vec3 pos;
+    glm::vec3 size;
+    glm::vec3 dir;
+
+    bool near(const scam_object& o) {
+        // TODO: obb intersection
+        return glm::length(pos - o.pos) < 3;
+    }
+};
 
 class sensors
 {
@@ -38,6 +51,7 @@ public:
     typedef resource<vrep_client::image_msr_laser_t> laser_img_res_t;
     typedef resource<vrep_client::image_msr_scam_t[2]> scam_img_res_t;
     typedef resource<point_cloud> cloud_res_t;
+    typedef resource<std::vector<scam_object>> scam_objects_res_t;
 
     sensors();
     ~sensors();
@@ -65,11 +79,15 @@ public:
         return _cloud;
     }
 
+    scam_objects_res_t& objects() {
+        return _scam_objects;
+    }
+
     bool pause;
 private:
     void process_usonic(const usonic_msr_t& msr);
-    void process_scam(const vrep_client::image_msr_scam_t& msr_left,
-                      const vrep_client::image_msr_scam_t& msr_right);
+    void process_scam(vrep_client::image_msr_scam_t& msr_left,
+                      vrep_client::image_msr_scam_t& msr_right);
     void process_laser(const vrep_client::image_msr_laser_t& msr);
 
     float _update_time;
@@ -79,6 +97,9 @@ private:
     laser_img_res_t _laser_img;
     scam_img_res_t _scam_img;
     cloud_res_t _cloud;
+    scam_objects_res_t _scam_objects;
+
+    std::shared_ptr<FFLD::FFLDDetector> _detector;
 
     vrep_client _client;
     std::thread _thread;

@@ -23,6 +23,7 @@ public:
 
     bool upload_points(sensors& sensors);
     void upload_mesh(const std::vector<float>& data);
+    void update_objects(sensors& sensors);
 
     glm::mat4 view;
     glm::vec3 eye;
@@ -36,6 +37,10 @@ public:
 
     size_t vertex_count() const {
         return _verts_n;
+    }
+
+    size_t objects_count() const {
+        return _objects.size();
     }
 
     void clear_points();
@@ -73,9 +78,9 @@ private:
     std::shared_ptr<vbuffer> _plane;
     std::shared_ptr<vbuffer> _mesh;
 
-    std::shared_ptr<shader> _xxx_shader;
-    std::shared_ptr<vbuffer> _xxx_mesh;
-    std::shared_ptr<texture<>> _xxx_tex;
+    std::shared_ptr<vbuffer> _obj_mesh;
+
+    std::vector<glm::mat4> _objects;
 
     const view_window& _window;
 
