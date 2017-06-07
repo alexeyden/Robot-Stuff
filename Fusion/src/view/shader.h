@@ -15,6 +15,7 @@ public:
     void uniform1f(const char* name, float x);
     void uniform2f(const char* name, const glm::vec2& v);
     void uniform3f(const char* name, const glm::vec3& v);
+    void uniform4f(const char* name, const glm::vec4& v);
     void uniform1i(const char* name, GLint u);
     void uniform_mat4(const char* name, const glm::mat4& m);
 

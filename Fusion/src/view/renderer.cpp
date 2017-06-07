@@ -145,19 +145,38 @@ void renderer::render()
             glm::perspective(glm::radians(45.0f), _window.width() / (float) _window.height(), 0.1f, 100.0f) *
             glm::lookAt(lp0,  lp0 + dir, glm::normalize(glm::cross(right, dir)));
 
-    bool use_shadow = shadow && !points_mode;
+    bool use_shadow = shadow;
     if (use_shadow) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
 
         _shadow_shader->bind();
         _shadow_shader->uniform_mat4("proj", model);
+
         _plane->bind();
         _plane->draw(0, 4);
+
         _mesh->bind();
         _mesh->draw(0, _verts_n);
 
+        _obj_mesh->bind();
+        _shadow_shader->uniform_mat4("proj", model * _robot);
+        _obj_mesh->draw(0, 6 * 6);
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    if(points_mode) {
+        _point_shader->bind();
+        _point_shader->uniform_mat4("proj", _proj);
+        _point_shader->uniform_mat4("model", view);
+        _point_shader->uniform1f("thresh", thresh);
+
+        _points->bind();
+        _points->draw(0, _points_n);
+        _points->unbind();
     }
 
     _shader->bind();
@@ -169,11 +188,16 @@ void renderer::render()
     _shader->uniform1i("shadow", use_shadow);
 
     if(use_shadow) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _shadow_map);
         _shader->uniform1i("map", 0);
         _shader->uniform_mat4("light_model", model);
+    }
+
+    if(!points_mode) {
+        _shader->uniform3f("sva", glm::vec3(0.7f, 1.0f, 1.0f));
+        _mesh->bind();
+        _mesh->draw(0, _verts_n);
     }
 
     if(ground_plane) {
@@ -184,27 +208,16 @@ void renderer::render()
     }
 
     _obj_mesh->bind();
-    _shader->uniform3f("sva", glm::vec3(0.9f, 1.0f, 1.0f));
+    _shader->uniform3f("sva", glm::vec3(0.9f, 1.0f, 0.5f));
     for(const glm::mat4& o : _objects) {
         _shader->uniform_mat4("model", view * o);
         _obj_mesh->draw(0, 6 * 6);
     }
 
-    if(!points_mode) {
-        _shader->uniform3f("sva", glm::vec3(0.7f, 1.0f, 1.0f));
-        _mesh->bind();
-        _mesh->draw(0, _verts_n);
-    }
-    else {
-        _point_shader->bind();
-        _point_shader->uniform_mat4("proj", _proj);
-        _point_shader->uniform_mat4("model", view);
-        _point_shader->uniform1f("thresh", thresh);
-
-        _points->bind();
-        _points->draw(0, _points_n);
-        _points->unbind();
-    }
+    _shader->uniform4f("override_color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    _shader->uniform_mat4("model", view * _robot);
+    _obj_mesh->draw(0, 6 * 6);
+    _shader->uniform4f("override_color", glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 /*
     _xxx_shader->bind();
@@ -293,6 +306,15 @@ void renderer::update_objects(sensors &sensors)
         _objects.push_back(m);
     }
     sensors.objects().mutex().unlock();
+
+    auto pos_dir = *sensors.robot.load();
+    auto pos = pos_dir.first;
+    auto dir = pos_dir.second;
+    _robot =  glm::translate(glm::mat4(), pos) *
+                glm::rotate(glm::mat4(), std::atan2(dir.y, dir.x), glm::vec3(0, 0, 1)) *
+                glm::scale(glm::mat4(), glm::vec3(0.65f, 0.38f, 0.42f)) *
+                glm::translate(glm::mat4(), glm::vec3(-0.5f, -0.5f, -0.5f));
+
 }
 
 void renderer::clear_points()

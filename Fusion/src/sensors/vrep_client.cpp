@@ -25,6 +25,8 @@ bool vrep_client::connect(simxInt port)
 
         simxGetObjectHandle(id, "Lidar", &_lidar_cam_id, simx_opmode_blocking);
 
+        simxGetObjectHandle(id, "Robot", &_robot_id, simx_opmode_blocking);
+
         simxGetObjectHandle(id, "Sonic1", &_usonic_id[0], simx_opmode_blocking);
         simxGetObjectHandle(id, "Sonic2", &_usonic_id[1], simx_opmode_blocking);
         simxGetObjectHandle(id, "Sonic3", &_usonic_id[2], simx_opmode_blocking);
@@ -154,4 +156,29 @@ bool vrep_client::update_scam(vrep_client::image_msr_scam_t &lmsr, vrep_client::
     }
 
     return op_ok;
+}
+
+std::pair<glm::vec3, glm::vec3> vrep_client::update_robot()
+{
+    float angles[3];
+    simxFloat pos[3];
+
+    bool op_ok = false;
+
+    op_ok =
+        simxGetObjectOrientation(_conn_id, _robot_id, -1, angles, simx_opmode_blocking) == simx_return_ok &&
+        simxGetObjectPosition(_conn_id, _robot_id, -1, pos, simx_opmode_blocking) == simx_return_ok;
+
+    glm::vec3 rpos;
+    glm::vec3 rdir;
+
+    if(op_ok) {
+        glm::mat4 rot = glm::rotate(glm::mat4(1.0f), angles[0], glm::vec3(1.0f, 0.0f, 0.0f)) *
+            glm::rotate(glm::mat4(1.0f), angles[1], glm::vec3(0.0f, 1.0f, 0.0f)) *
+            glm::rotate(glm::mat4(1.0f), angles[2], glm::vec3(0.0f, 0.0f, 1.0f));
+        rdir = glm::normalize(rot * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        rpos = glm::vec3(pos[0], pos[1], pos[2]);
+    }
+
+    return std::make_pair(rpos, rdir);
 }

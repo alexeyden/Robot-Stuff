@@ -66,10 +66,11 @@ public:
     bool update_usonic(usonic_msr_t *msr);
     bool update_laser(vrep_client::image_msr_laser_t &msr);
     bool update_scam(vrep_client::image_msr_scam_t &lmsr, image_msr_scam_t &rmsr);
+    std::pair<glm::vec3, glm::vec3> update_robot();
 
 private:
-private:
     simxInt _conn_id;
+    simxInt _robot_id;
     simxInt _lcam_id, _rcam_id, _lidar_cam_id;
     simxInt _usonic_id[USONIC_NUM];
 };

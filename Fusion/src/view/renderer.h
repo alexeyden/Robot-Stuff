@@ -81,6 +81,7 @@ private:
     std::shared_ptr<vbuffer> _obj_mesh;
 
     std::vector<glm::mat4> _objects;
+    glm::mat4 _robot;
 
     const view_window& _window;
 

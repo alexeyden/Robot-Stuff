@@ -14,9 +14,9 @@ struct scam_object {
     glm::vec3 size;
     glm::vec3 dir;
 
-    bool near(const scam_object& o) {
+    bool near(const scam_object& o) const {
         // TODO: obb intersection
-        return glm::length(pos - o.pos) < 3;
+        return glm::length(pos - o.pos) < 5;
     }
 };
 
@@ -83,12 +83,19 @@ public:
         return _scam_objects;
     }
 
+    std::atomic<std::pair<glm::vec3, glm::vec3>*> robot;
+
     bool pause;
 private:
     void process_usonic(const usonic_msr_t& msr);
     void process_scam(vrep_client::image_msr_scam_t& msr_left,
                       vrep_client::image_msr_scam_t& msr_right);
     void process_laser(const vrep_client::image_msr_laser_t& msr);
+
+    struct object_descr { glm::vec3 size; glm::vec2 dir; };
+    std::vector<scam_object> detect(std::shared_ptr<FFLD::FFLDDetector> detector,
+                                    vrep_client::image_msr_scam_t& msr,
+                                    const object_descr& descr);
 
     float _update_time;
 
@@ -99,10 +106,13 @@ private:
     cloud_res_t _cloud;
     scam_objects_res_t _scam_objects;
 
-    std::shared_ptr<FFLD::FFLDDetector> _detector;
+    std::shared_ptr<FFLD::FFLDDetector> _detector_car;
+    std::shared_ptr<FFLD::FFLDDetector> _detector_man;
 
     vrep_client _client;
     std::thread _thread;
+
+    std::pair<glm::vec3, glm::vec3> _robot;
 };
 
 #endif // FETCHER_H

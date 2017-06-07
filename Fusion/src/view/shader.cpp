@@ -69,6 +69,11 @@ void shader::uniform3f(const char *name, const glm::vec3 &v)
     glUniform3f(glGetUniformLocation(_program, name), v.x, v.y, v.z);
 }
 
+void shader::uniform4f(const char *name, const glm::vec4 &v)
+{
+    glUniform4f(glGetUniformLocation(_program, name), v.x, v.y, v.z, v.w);
+}
+
 void shader::uniform1i(const char *name, GLint u)
 {
     glUniform1i(glGetUniformLocation(_program, name), u);

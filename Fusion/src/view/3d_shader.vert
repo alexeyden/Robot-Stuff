@@ -14,6 +14,7 @@ uniform mat4 proj;
 uniform mat4 model;
 uniform mat4 light_model;
 uniform vec3 sva;
+uniform vec4 override_color = vec4(0.0, 0.0, 0.0, 0.0);
 
 vec3 hsv2rgb(vec3 c)
 {
@@ -25,7 +26,10 @@ vec3 hsv2rgb(vec3 c)
 void main() {
     v_norm = norm;
     v_pos = position;
-    v_color = vec4(hsv2rgb(vec3(cluster, sva.x, sva.y)), sva.z);
+    if(length(override_color) > 0.0)
+        v_color = override_color;
+    else
+        v_color = vec4(hsv2rgb(vec3(cluster, sva.x, sva.y)), sva.z);
     v_light_pos = light_model * vec4(position, 1.0);
     gl_Position = proj * model * vec4(position, 1.0);
 }
