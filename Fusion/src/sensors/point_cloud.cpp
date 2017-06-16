@@ -104,9 +104,16 @@ void point_cloud::load(const char *path)
     clear();
     std::ifstream fs(path);
 
+    float scale = config::get<float>("cloud.scale");
+
     point_t p;
     while(!fs.eof()) {
-        fs >> p.x >> p.y >> p.z >> p.p;
+        float px, py, pz;
+        fs >> px >> py >> pz >> p.p;
+
+        p.x = px * scale;
+        p.y = pz * scale;
+        p.z = py * scale;
 
         for(int i = 0; i < point_t::SUB_N; i++)
             fs >> p.pd[i];

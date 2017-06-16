@@ -231,7 +231,7 @@ std::vector<scam_object> sensors::detect(std::shared_ptr<FFLDDetector> detector,
     const float px0 = tanXDistTxAlpha0*xBeta*near;
     const float px1 = tanXDistTxAlpha1*xBeta*near;
 
-    const float depth = near * size / std::abs(px0 - px1) + size2/2;
+    const float depth = near * size / std::abs(px0 - px1) + size2; // /2;
 
     glm::vec4 pv = glm::vec4((tanXDistTxAlpha0 + tanXDistTxAlpha1)/2.0f*xBeta*depth, 0, -depth, 1);
 
